@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Timetable - AU ERP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+  <style>
+    :root {--primary:#1e293b;--accent:#2563eb;--bg:#f9fafb;--border:#e5e7eb;--text:#1f2937;--hover:#f3f4f6;}
+    * {margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+    body {display:flex;min-height:100vh;background:var(--bg);color:var(--text)}
+
+    /* Sidebar */
+    .sidebar {width:240px;background:linear-gradient(180deg,#1e293b,#111827);color:#fff;height:100vh;position:fixed;display:flex;flex-direction:column;box-shadow:2px 0 8px rgba(0,0,0,0.2)}
+    .sidebar-header {background:var(--accent);padding:16px;text-align:center;font-size:18px;font-weight:700;letter-spacing:0.5px}
+    .student-info {text-align:center;padding:20px 15px;border-bottom:1px solid rgba(255,255,255,0.08)}
+    .student-info img {width:80px;height:80px;border-radius:50%;border:3px solid var(--accent);object-fit:cover;margin-bottom:10px;background:#fff}
+    .student-info .name {font-size:15px;font-weight:600;margin-bottom:2px}
+    .student-info .email,.student-info .role {font-size:12px;color:#9ca3af}
+    .sidebar ul {list-style:none;margin:20px 0;padding:0;flex-grow:1}
+    .sidebar li {margin:4px 12px}
+    .sidebar li a {display:flex;align-items:center;padding:10px 12px;text-decoration:none;color:#d1d5db;font-size:14px;border-radius:6px;transition:all 0.25s ease}
+    .sidebar li a i {width:22px;margin-right:10px;font-size:15px}
+    .sidebar li a:hover {background:rgba(37,99,235,0.15);color:#fff}
+    .sidebar li.active a {background:var(--accent);color:#fff;font-weight:600}
+    .sidebar ul li:last-child {margin-top:auto;margin-bottom:20px}
+
+    /* Main */
+    .main-content {margin-left:240px;padding:24px;width:calc(100% - 240px);display:flex;flex-direction:column;min-height:100vh}
+    .topbar {display:flex;justify-content:space-between;align-items:center;background:#fff;padding:14px 18px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin-bottom:24px}
+    .topbar-left {display:flex;align-items:center;gap:12px}
+    .topbar-left img {height:40px}
+    .topbar h1 {font-size:20px;font-weight:600;color:var(--primary)}
+    .welcome {font-size:14px;text-align:right;color:var(--text)}
+    .welcome strong {color:var(--accent)}
+    .welcome .email {font-size:12px;color:#6b7280;display:block}
+
+    /* Profile Card */
+    .profile-card {background:#fff;padding:22px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.1);display:flex;align-items:center;gap:20px;margin-bottom:24px}
+    .profile-card img {width:100px;height:100px;border-radius:50%;border:3px solid var(--accent);object-fit:cover}
+    .profile-details h2 {font-size:18px;font-weight:700;color:var(--primary);margin:0}
+    .profile-details p {font-size:14px;color:#374151;margin:4px 0}
+    .profile-details .program {font-size:13px;color:#6b7280}
+
+    /* Calendar Section */
+    .section {background:#fff;padding:22px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);flex-grow:1}
+    .section h2 {font-size:18px;font-weight:600;margin-bottom:18px}
+    #calendar {max-width:100%;margin:0 auto}
+    .fc-toolbar-title {font-size:18px !important;font-weight:600}
+    .fc-button {background:#2563eb !important;border:none !important;border-radius:6px !important;font-size:13px !important;padding:6px 12px !important}
+    .fc-button:hover {background:#1e40af !important}
+    .fc-event {font-size:13px !important;padding:4px 6px;border-radius:6px;cursor:pointer;border:1px solid #ddd}
+    .fc-daygrid-event-dot {display:none !important}
+
+    /* Holiday Styling */
+    .holiday-event {background:#dc2626 !important;color:white !important;font-weight:600 !important;border:none !important;}
+
+    /* Tooltip */
+    .tooltip {position:absolute;background:#1e293b;color:white;padding:6px 10px;font-size:12px;border-radius:6px;white-space:nowrap;pointer-events:none;z-index:9999;display:none}
+
+    footer {text-align:center;font-size:12px;color:#6b7280;padding:16px 0;margin-top:auto}
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">AU ERP</div>
+    <div class="student-info">
+      <img id="studentPhotoSide" src="https://i.postimg.cc/fbVwm1L2/Bon.jpg" alt="Student">
+      <div class="name" id="studentNameSide">Student</div>
+      <div class="email" id="studentEmailSide">student@ced.alliance.edu.in</div>
+      <div class="role">University Student</div>
+    </div>
+    <ul>
+      <li><a href="studentdashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li class="active"><a href="studenttimetable.html"><i class="fas fa-calendar-alt"></i> Timetable</a></li>
+      <li><a href="studentattendance.html"><i class="fas fa-check-circle"></i> Attendance</a></li>
+      <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <img src="https://i.postimg.cc/cHN88t2D/AU.png" alt="AU Logo">
+        <h1>Student Timetable</h1>
+      </div>
+      <div class="welcome">
+        <span>Welcome, <strong id="welcomeName">Student</strong></span>
+        <span class="email" id="welcomeEmail">student@ced.alliance.edu.in</span>
+      </div>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="profile-card">
+      <img id="profilePhoto" src="https://i.postimg.cc/fbVwm1L2/Bon.jpg" alt="Profile">
+      <div class="profile-details">
+        <h2 id="profileName">Student Name</h2>
+        <p id="profileEmail">student@ced.alliance.edu.in</p>
+        <p class="program" id="profileProgram">Program Info</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Your Classes & Holidays</h2>
+      <div id="calendar"></div>
+      <div class="tooltip" id="tooltip"></div>
+    </div>
+
+    <footer>© 2025 Alliance University. All rights reserved.</footer>
+  </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", async function () {
+    const studentId = localStorage.getItem("studentId");
+    const calendarEl = document.getElementById("calendar");
+    const tooltip = document.getElementById("tooltip");
+
+    if (!studentId) {
+      alert("Not logged in. Redirecting...");
+      window.location.href = "index.html";
+      return;
+    }
+
+    try {
+      // 🔹 Fetch student profile (photo, name, program, etc.)
+      const profileRes = await fetch(`/api/student/${studentId}/profile`);
+      const profile = await profileRes.json();
+
+      // Fill profile data everywhere
+      document.getElementById("studentNameSide").textContent = profile.name;
+      document.getElementById("welcomeName").textContent = profile.name;
+      document.getElementById("studentEmailSide").textContent = profile.email;
+      document.getElementById("welcomeEmail").textContent = profile.email;
+
+      document.getElementById("studentPhotoSide").src = profile.photo || "https://i.postimg.cc/fbVwm1L2/Bon.jpg";
+      document.getElementById("profilePhoto").src = profile.photo || "https://i.postimg.cc/fbVwm1L2/Bon.jpg";
+      document.getElementById("profileName").textContent = profile.name;
+      document.getElementById("profileEmail").textContent = profile.email;
+      document.getElementById("profileProgram").textContent =
+        `${profile.semester ? "Semester " + profile.semester : ""} ${profile.department_name || ""} ${profile.section_name || ""}`;
+
+      // 🔹 Fetch timetable
+      const classRes = await fetch(`/api/student/${studentId}/timetable`);
+      const classEvents = await classRes.json();
+
+      // 🔹 Fetch holidays
+      const holidayRes = await fetch(`/api/student/holidays`);
+      const holidayEvents = await holidayRes.json();
+
+      const events = [...classEvents, ...holidayEvents];
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "timeGridWeek",
+        headerToolbar: {left: "prev,next today",center: "title",right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek"},
+        allDaySlot: false,slotMinTime:"08:00:00",slotMaxTime:"20:00:00",expandRows:true,
+        events: events,
+        eventMouseEnter: function(info) {
+          if (info.event.classNames.includes("holiday-event")) {
+            tooltip.innerHTML = `<strong>Holiday:</strong> ${info.event.title}`;
+          } else {
+            const faculty = info.event.extendedProps.faculty || "TBA";
+            const room = info.event.extendedProps.room || "N/A";
+            tooltip.innerHTML = `<strong>${info.event.title}</strong><br>👨‍🏫 ${faculty}<br>🏫 Room: ${room}`;
+          }
+          tooltip.style.display = "block";
+          tooltip.style.left = info.jsEvent.pageX + 10 + "px";
+          tooltip.style.top = info.jsEvent.pageY + 10 + "px";
+        },
+        eventMouseLeave: function() {tooltip.style.display = "none";}
+      });
+      calendar.render();
+
+    } catch (err) {
+      console.error("Error loading data:", err);
+      calendarEl.innerHTML = `<p style="color:red;text-align:center">Error loading timetable</p>`;
+    }
+  });
+
+  function logout() {
+    if (confirm("Log out?")) {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+  }
+</script>
+</body>
+</html>

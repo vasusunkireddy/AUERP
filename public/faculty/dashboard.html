@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Faculty Dashboard - AU ERP</title>
+
+  <!-- Fonts / Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/>
+
+  <style>
+    :root { --primary:#1e293b; --accent:#2563eb; --bg:#f9fafb; --border:#e5e7eb; --text:#1f2937; }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
+    body { display:flex; min-height:100vh; background:var(--bg); color:var(--text); }
+
+    /* Sidebar */
+    .sidebar { width:260px; background:linear-gradient(180deg,#1e293b,#111827); color:#fff; height:100vh; position:fixed; display:flex; flex-direction:column; box-shadow:2px 0 10px rgba(0,0,0,0.15); }
+    .sidebar-header { background:#2563eb; padding:18px; text-align:center; font-size:18px; font-weight:700; }
+    .faculty-info { text-align:center; padding:20px 16px; border-bottom:1px solid rgba(255,255,255,0.1); }
+    .faculty-info img { width:80px; height:80px; border-radius:50%; border:3px solid #2563eb; object-fit:cover; margin-bottom:10px; background:#fff; }
+    .faculty-info .name { font-size:15px; font-weight:600; margin-bottom:4px; }
+    .faculty-info .email { font-size:12px; color:#d1d5db; }
+    .faculty-info .role { font-size:12px; color:#9ca3af; }
+
+    .menu { list-style:none; padding:10px; margin-top:10px; flex:1; overflow-y:auto; }
+    .menu-item { margin:6px 0; }
+    .menu-link,
+    .menu-toggle { width:100%; display:flex; align-items:center; gap:10px; padding:12px 14px; color:#d1d5db; text-decoration:none; font-size:14px; border-radius:8px; transition:all .25s; cursor:pointer; background:transparent; border:none; }
+    .menu-link i, .menu-toggle i { width:22px; text-align:center; }
+    .menu-link:hover, .menu-toggle:hover { background:rgba(37,99,235,0.15); color:#fff; }
+    .menu-item.active > .menu-link { background:#2563eb; color:#fff; font-weight:600; }
+    .chev { margin-left:auto; transition:transform .25s; opacity:.9; }
+    .is-open .chev { transform:rotate(180deg); }
+
+    /* Submenu (Attendance dropdown) */
+    .submenu { list-style:none; margin:6px 0 0 0; padding:6px 0 6px 8px; border-left:3px solid rgba(255,255,255,0.08); display:none; }
+    .is-open + .submenu { display:block; }
+
+    .submenu a { display:flex; align-items:center; gap:10px; padding:10px 14px 10px 8px; color:#cbd5e1; text-decoration:none; border-radius:8px; font-size:14px; transition:all .2s; }
+    .submenu a:hover { background:rgba(37,99,235,0.13); color:#fff; }
+
+    /* Radio bullet look */
+    .dot { width:18px; height:18px; border:2px solid #9ca3af; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; flex:0 0 18px; }
+    .dot::after { content:""; width:8px; height:8px; background:transparent; border-radius:50%; transition:background .2s; }
+    .submenu a:hover .dot::after { background:#fff; }
+
+    /* Checkbox icon next to Attendance (visual only) */
+    .checkbox { width:18px; height:18px; border:2px solid #9ca3af; border-radius:4px; display:inline-flex; align-items:center; justify-content:center; position:relative; }
+    .checkbox::after { content:""; width:9px; height:9px; background:#2563eb; border-radius:2px; opacity:.95; display:block; }
+
+    /* Main area */
+    .main { margin-left:260px; padding:24px; width:calc(100% - 260px); display:flex; flex-direction:column; min-height:100vh; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; background:#fff; padding:14px 18px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); margin-bottom:24px; }
+    .topbar-left { display:flex; align-items:center; gap:12px; }
+    .topbar-left img { height:40px; }
+    .topbar h1 { font-size:20px; font-weight:600; color:var(--primary); }
+    .welcome { font-size:14px; text-align:right; color:var(--text); }
+    .welcome strong { color:var(--accent); }
+    .welcome .email { font-size:12px; color:#6b7280; display:block; }
+
+    .section { background:#fff; padding:22px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.1); flex:1; }
+    .section h2 { font-size:18px; font-weight:600; margin-bottom:18px; }
+    .cards { display:flex; gap:18px; flex-wrap:wrap; }
+    .card { flex:1; min-width:220px; background:#f3f4f6; border:1px solid var(--border); border-radius:8px; padding:22px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,0.08); transition:transform .2s, box-shadow .2s; }
+    .card:hover { transform:translateY(-3px); box-shadow:0 3px 8px rgba(0,0,0,0.12); }
+    .card i { font-size:28px; margin-bottom:12px; color:var(--accent); }
+    .card h3 { font-size:16px; margin-bottom:8px; color:var(--primary); }
+    .card p { font-size:13px; color:#4b5563; margin-bottom:14px; }
+    .card button { padding:8px 14px; background:var(--accent); border:none; border-radius:6px; color:#fff; cursor:pointer; font-size:13px; transition:background .3s; }
+    .card button:hover { background:#1e40af; }
+
+    footer { text-align:center; font-size:12px; color:#6b7280; padding:16px 0; margin-top:auto; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">AU ERP</div>
+
+    <div class="faculty-info">
+      <img id="facultyPhoto" src="https://i.postimg.cc/fbVwm1L2/Bon.jpg" alt="Faculty"/>
+      <div class="name" id="facultyName">Faculty</div>
+      <div class="email" id="facultyEmail">faculty@au.edu</div>
+      <div class="role">University Faculty</div>
+    </div>
+
+    <ul class="menu">
+      <li class="menu-item active">
+        <a class="menu-link" href="dashboard.html">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      <li class="menu-item">
+        <a class="menu-link" href="timetable.html">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Timetable</span>
+        </a>
+      </li>
+
+      <!-- Attendance dropdown -->
+      <li class="menu-item">
+        <button class="menu-toggle" type="button" aria-expanded="false" id="attendanceToggle">
+          <!-- visual checkbox icon to match screenshot -->
+          <span class="checkbox" aria-hidden="true"></span>
+          <span>Attendance</span>
+          <i class="fa-solid fa-chevron-down chev"></i>
+        </button>
+        <ul class="submenu" aria-label="Attendance submenu">
+          <li>
+            <a href="attendance.html">
+              <span class="dot" aria-hidden="true"></span>
+              <span>Take Attendance</span>
+            </a>
+          </li>
+          <li>
+            <a href="modifyattendance.html">
+              <span class="dot" aria-hidden="true"></span>
+              <span>Modify Attendance</span>
+            </a>
+          </li>
+        </ul>
+      </li>
+
+      <li class="menu-item">
+        <a class="menu-link" href="#" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <img src="https://i.postimg.cc/cHN88t2D/AU.png" alt="AU Logo"/>
+        <h1>Faculty Dashboard</h1>
+      </div>
+      <div class="welcome">
+        <span>Welcome, <strong id="welcomeName">Faculty</strong></span>
+        <span class="email" id="welcomeEmail">faculty@au.edu</span>
+      </div>
+    </div>
+
+    <section class="section">
+      <h2>Overview</h2>
+      <div class="cards">
+        <div class="card">
+          <i class="fas fa-calendar-alt"></i>
+          <h3>Timetable</h3>
+          <p>View your allocated timetable and subjects.</p>
+          <button onclick="location.href='timetable.html'">View</button>
+        </div>
+
+        <div class="card">
+          <i class="fas fa-check-circle"></i>
+          <h3>Attendance</h3>
+          <p>Take or update attendance for your classes.</p>
+          <button onclick="document.getElementById('attendanceToggle').click()">Open Menu</button>
+        </div>
+      </div>
+    </section>
+
+    <footer>© 2025 Alliance University. All rights reserved.</footer>
+  </main>
+
+  <script>
+    // Load profile
+    async function loadFacultyProfile() {
+      const facultyId = localStorage.getItem("facultyId");
+      if (!facultyId) return;
+
+      try {
+        const res = await fetch(`http://localhost:3000/api/faculty/profile/${facultyId}`);
+        if (!res.ok) throw new Error("Failed to load profile");
+        const data = await res.json();
+
+        document.getElementById("facultyName").textContent = data.name || "Faculty";
+        document.getElementById("facultyEmail").textContent = data.email || "faculty@au.edu";
+        document.getElementById("facultyPhoto").src = data.photo || "https://i.postimg.cc/fbVwm1L2/Bon.jpg";
+
+        document.getElementById("welcomeName").textContent = data.name || "Faculty";
+        document.getElementById("welcomeEmail").textContent = data.email || "faculty@au.edu";
+
+        localStorage.setItem("facultyName", data.name || "");
+        localStorage.setItem("facultyEmail", data.email || "");
+        localStorage.setItem("facultyPhoto", data.photo || "");
+      } catch (err) {
+        console.error("Error loading faculty profile", err);
+      }
+    }
+
+    // Sidebar Attendance dropdown toggle
+    (function setupAttendanceToggle() {
+      const toggle = document.getElementById("attendanceToggle");
+      if (!toggle) return;
+      toggle.addEventListener("click", () => {
+        const open = toggle.classList.toggle("is-open");
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    })();
+
+    function logout(){
+      if(confirm("Log out?")){
+        localStorage.clear();
+        location.href="login.html";
+      }
+    }
+
+    loadFacultyProfile();
+  </script>
+</body>
+</html>

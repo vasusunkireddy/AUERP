@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faculty Timetable - AU ERP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root{--primary:#1e293b;--accent:#2563eb;--bg:#f9fafb;--border:#e5e7eb;--text:#1f2937;--danger:#dc2626}
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+    body{display:flex;min-height:100vh;background:var(--bg);color:var(--text)}
+    .sidebar{width:250px;background:linear-gradient(180deg,#1e293b,#111827);color:#fff;height:100vh;position:fixed;display:flex;flex-direction:column}
+    .sidebar-header{background:#2563eb;padding:18px;text-align:center;font-size:18px;font-weight:700}
+    .sidebar ul{list-style:none;margin-top:20px;padding:0 10px;flex-grow:1}
+    .sidebar li{margin:6px 0}
+    .sidebar li a{display:flex;align-items:center;padding:12px 14px;text-decoration:none;color:#d1d5db;font-size:14px;border-radius:8px;transition:all 0.3s ease}
+    .sidebar li a i{width:22px;margin-right:10px}
+    .sidebar li a:hover{background:rgba(37,99,235,0.15);color:#fff}
+    .sidebar li.active a{background:#2563eb;color:#fff;font-weight:600}
+    .main-content{margin-left:250px;padding:24px;width:calc(100% - 250px);display:flex;flex-direction:column;min-height:100vh}
+    .topbar{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:14px 18px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin-bottom:24px}
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .topbar-left img{height:40px}
+    .topbar h1{font-size:20px;font-weight:600;color:var(--primary)}
+    .section{background:#fff;padding:22px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);flex-grow:1}
+    .section h2{font-size:18px;font-weight:600;margin-bottom:18px}
+    table{width:100%;border-collapse:collapse;text-align:center}
+    th,td{border:1px solid var(--border);padding:10px;font-size:13px;vertical-align:middle}
+    th{background:#f3f4f6}
+    .lab{background:#e0f2fe;color:#075985;font-weight:600}
+    .holiday{background:#fee2e2;color:var(--danger);font-weight:600}
+    footer{text-align:center;font-size:12px;color:#6b7280;padding:16px 0;margin-top:auto}
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">AU ERP</div>
+    <ul>
+      <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li class="active"><a href="timetable.html"><i class="fas fa-calendar-alt"></i> Timetable</a></li>
+      <li><a href="attendance.html"><i class="fas fa-check-circle"></i> Attendance</a></li>
+      <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <img src="https://i.postimg.cc/cHN88t2D/AU.png" alt="AU Logo">
+        <h1>My Timetable</h1>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Your Weekly Timetable</h2>
+      <table id="timetableGrid">
+        <thead>
+          <tr>
+            <th>Session / Day</th>
+            <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th>
+          </tr>
+        </thead>
+        <tbody id="timetableBody"></tbody>
+      </table>
+    </div>
+    <footer>© 2025 Alliance University. All rights reserved.</footer>
+  </div>
+
+  <script>
+    const facultyId = localStorage.getItem("facultyId"); // set after login
+    if (!facultyId) {
+      alert("Please login first");
+      window.location.href = "login.html";
+    }
+
+    async function loadTimetable() {
+      const res = await fetch(`http://localhost:3000/api/faculty/timetable/${facultyId}`);
+      const data = await res.json();
+      const timetable = data.timetable || [];
+      const holidays = data.holidays || [];
+
+      const days = ["Mon","Tue","Wed","Thu","Fri","Sat"];
+      const sessions = [...new Set(timetable.map(d => d.session))].sort((a,b)=>a-b);
+      const tbody = document.getElementById("timetableBody");
+      tbody.innerHTML = "";
+
+      sessions.forEach(s => {
+        let row = `<tr><td>Session ${s}</td>`;
+        days.forEach(day => {
+          // check if this day is holiday
+          const holiday = holidays.find(h => {
+            const holidayDay = new Date(h.date).toLocaleDateString("en-US", { weekday: "short" });
+            return holidayDay === day;
+          });
+
+          if (holiday) {
+            row += `<td class="holiday" colspan="1">${holiday.reason}</td>`;
+          } else {
+            const slot = timetable.find(d => d.day === day && d.session === s);
+            if (slot) {
+              const isLab = slot.duration_periods > 1;
+              row += `<td class="${isLab ? 'lab' : ''}">
+                        <b>${slot.course_code}</b> - ${slot.course_name}<br>
+                        Section ${slot.section_name} (Sem ${slot.semester})<br>
+                        Room: ${slot.room || "N/A"}<br>
+                        ${slot.start_time} - ${slot.end_time}<br>
+                        ${isLab ? "(Lab - "+slot.duration_periods+" sessions)" : "Lecture"}
+                      </td>`;
+            } else {
+              row += "<td>-</td>";
+            }
+          }
+        });
+        row += "</tr>";
+        tbody.innerHTML += row;
+      });
+    }
+
+    function logout() {
+      localStorage.removeItem("facultyId");
+      window.location.href = "login.html";
+    }
+
+    loadTimetable();
+  </script>
+</body>
+</html>

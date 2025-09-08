@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance - Dean Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1e293b;
+      --accent: #2563eb;
+      --bg: #f9fafb;
+      --border: #e5e7eb;
+      --text: #1f2937;
+      --danger: #dc2626;
+      --success: #16a34a;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { display: flex; min-height: 100vh; background: var(--bg); color: var(--text); }
+
+    /* Sidebar */
+    .sidebar { width: 250px; background: linear-gradient(180deg, #1e293b, #111827); color: #fff; height: 100vh; position: fixed; display: flex; flex-direction: column; }
+    .sidebar-header { background: #2563eb; padding: 18px; text-align: center; font-size: 18px; font-weight: 700; }
+    .sidebar ul { list-style: none; margin-top: 20px; padding: 0 10px; flex-grow: 1; }
+    .sidebar li { margin: 6px 0; }
+    .sidebar li a { display: flex; align-items: center; padding: 12px 14px; text-decoration: none; color: #d1d5db; font-size: 14px; border-radius: 8px; transition: all 0.3s ease; }
+    .sidebar li a i { width: 22px; margin-right: 10px; }
+    .sidebar li a:hover { background: rgba(37,99,235,0.15); color: #fff; }
+    .sidebar li.active a { background: #2563eb; color: #fff; font-weight: 600; }
+
+    /* Main */
+    .main-content { margin-left: 250px; padding: 24px; width: calc(100% - 250px); }
+    .topbar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 14px 18px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-left img { height: 40px; }
+    .topbar h1 { font-size: 20px; font-weight: 600; color: var(--primary); }
+
+    .filters { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    select, input[type="date"], input[type="text"] { padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
+    button { background: var(--accent); color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    button:hover { background: #1e40af; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
+    th, td { border: 1px solid var(--border); padding: 12px; font-size: 14px; text-align: center; }
+    th { background: #f3f4f6; }
+    td button { padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; font-size: 13px; }
+    .present-btn { background: #16a34a; color: #fff; }
+    .absent-btn { background: #dc2626; color: #fff; }
+
+    .summary { margin-top: 20px; background: #fff; padding: 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+    /* Toast */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+    .toast { background: #fff; border-left: 6px solid; padding: 12px 18px; margin-top: 10px; border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15); min-width: 220px; font-size: 14px; animation: slideIn 0.3s ease; }
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--danger); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">AU ERP</div>
+    <ul>
+      <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li><a href="department.html"><i class="fas fa-building"></i> Departments</a></li>
+      <li><a href="sections.html"><i class="fas fa-users"></i> Sections</a></li>
+      <li><a href="faculty.html"><i class="fas fa-chalkboard-teacher"></i> Faculty</a></li>
+      <li><a href="students.html"><i class="fas fa-user-graduate"></i> Students</a></li>
+      <li><a href="courses.html"><i class="fas fa-book"></i> Courses</a></li>
+      <li><a href="timetable.html"><i class="fas fa-calendar-alt"></i> Timetable</a></li>
+      <li><a href="holidays.html"><i class="fas fa-umbrella-beach"></i> Holidays</a></li>
+      <li class="active"><a href="attendance.html"><i class="fas fa-check-circle"></i> Attendance</a></li>
+      <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <img src="https://i.postimg.cc/cHN88t2D/AU.png" alt="AU Logo">
+        <h1>Attendance Management</h1>
+      </div>
+    </div>
+
+    <div class="filters">
+      <select id="section"></select>
+      <input type="date" id="date">
+      <input type="text" id="search" placeholder="Search by Reg No / Name">
+      <button onclick="loadAttendance()">Load</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Reg No</th>
+          <th>Name</th>
+          <th>Course</th>
+          <th>Faculty</th>
+          <th>Status</th>
+          <th>Update</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceBody"></tbody>
+    </table>
+
+    <div class="summary" id="summaryBox">
+      <h3>Attendance Summary</h3>
+      <p id="summaryText">Select section and date to view summary.</p>
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const toastContainer = document.getElementById("toastContainer");
+    function showToast(message, type="success") {
+      const toast = document.createElement("div");
+      toast.className = "toast " + type;
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    async function loadSections() {
+      const res = await fetch("http://localhost:3000/api/dean/sections");
+      const data = await res.json();
+      const secSelect = document.getElementById("section");
+      secSelect.innerHTML = "<option value=''>Select Section</option>";
+      data.forEach(s => {
+        secSelect.innerHTML += `<option value="${s.id}">${s.department_name} - ${s.section_name} (Batch ${s.batch_name}, Sem ${s.semester})</option>`;
+      });
+    }
+
+    async function loadAttendance() {
+      const sectionId = document.getElementById("section").value;
+      const date = document.getElementById("date").value;
+      if (!sectionId || !date) {
+        showToast("Please select section and date", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://localhost:3000/api/dean/attendance/${sectionId}/${date}`);
+        if (!res.ok) {
+          // If backend returns 404 or error
+          document.getElementById("attendanceBody").innerHTML =
+            `<tr><td colspan="6">No attendance available</td></tr>`;
+          document.getElementById("summaryText").textContent = "No attendance available for this date.";
+          return;
+        }
+
+        const data = await res.json();
+        const tbody = document.getElementById("attendanceBody");
+        tbody.innerHTML = "";
+
+        const searchValue = document.getElementById("search").value.toLowerCase();
+        const filtered = data.filter(row =>
+          row.registration_no.toLowerCase().includes(searchValue) ||
+          row.student_name.toLowerCase().includes(searchValue)
+        );
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6">No attendance available</td></tr>`;
+          document.getElementById("summaryText").textContent = "No attendance available for this date.";
+          return;
+        }
+
+        filtered.forEach(row => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${row.registration_no}</td>
+              <td>${row.student_name}</td>
+              <td>${row.course_code} - ${row.course_name}</td>
+              <td>${row.faculty_name}</td>
+              <td>${row.status}</td>
+              <td>
+                <button class="present-btn" onclick="updateStatus(${row.id}, 'Present')">Present</button>
+                <button class="absent-btn" onclick="updateStatus(${row.id}, 'Absent')">Absent</button>
+              </td>
+            </tr>`;
+        });
+
+        loadSummary(sectionId);
+      } catch (err) {
+        console.error(err);
+        document.getElementById("attendanceBody").innerHTML =
+          `<tr><td colspan="6">No attendance available</td></tr>`;
+        document.getElementById("summaryText").textContent = "No attendance available for this date.";
+      }
+    }
+
+    async function updateStatus(id, status) {
+      const res = await fetch(`http://localhost:3000/api/dean/attendance/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status })
+      });
+      if (res.ok) {
+        showToast("✅ Attendance updated");
+        loadAttendance();
+      } else {
+        showToast("❌ Failed to update", "error");
+      }
+    }
+
+    async function loadSummary(sectionId) {
+      try {
+        const res = await fetch(`http://localhost:3000/api/dean/attendance/summary/${sectionId}`);
+        if (!res.ok) {
+          document.getElementById("summaryText").textContent = "No summary available.";
+          return;
+        }
+        const data = await res.json();
+        let total = 0, present = 0, absent = 0;
+
+        data.forEach(s => {
+          total += s.total_classes;
+          present += s.present_count;
+          absent += s.absent_count;
+        });
+
+        const percent = total > 0 ? ((present / total) * 100).toFixed(2) : 0;
+        document.getElementById("summaryText").textContent =
+          `Total Classes: ${total}, Present: ${present}, Absent: ${absent}, Attendance %: ${percent}%`;
+      } catch {
+        document.getElementById("summaryText").textContent = "No summary available.";
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("deanId");
+      window.location.href = "login.html";
+    }
+
+    loadSections();
+  </script>
+</body>
+</html>

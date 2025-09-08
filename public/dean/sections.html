@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sections - Dean Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1e293b;
+      --accent: #2563eb;
+      --bg: #f9fafb;
+      --border: #e5e7eb;
+      --text: #1f2937;
+      --danger: #dc2626;
+      --success: #16a34a;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { display: flex; min-height: 100vh; background: var(--bg); color: var(--text); }
+
+    /* Sidebar */
+    .sidebar { width: 250px; background: linear-gradient(180deg, #1e293b, #111827); color: #fff; height: 100vh; position: fixed; display: flex; flex-direction: column; }
+    .sidebar-header { background: #2563eb; padding: 18px; text-align: center; font-size: 18px; font-weight: 700; }
+    .sidebar ul { list-style: none; margin-top: 20px; padding: 0 10px; flex-grow: 1; }
+    .sidebar li { margin: 6px 0; }
+    .sidebar li a { display: flex; align-items: center; padding: 12px 14px; text-decoration: none; color: #d1d5db; font-size: 14px; border-radius: 8px; transition: all 0.3s ease; }
+    .sidebar li a i { width: 22px; margin-right: 10px; }
+    .sidebar li a:hover { background: rgba(37,99,235,0.15); color: #fff; }
+    .sidebar li.active a { background: #2563eb; color: #fff; font-weight: 600; }
+
+    /* Main */
+    .main-content { margin-left: 250px; padding: 24px; width: calc(100% - 250px); display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 14px 18px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-left img { height: 40px; }
+    .topbar h1 { font-size: 20px; font-weight: 600; color: var(--primary); }
+
+    .section { background: #fff; padding: 22px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-grow: 1; }
+    .section h2 { font-size: 18px; font-weight: 600; margin-bottom: 18px; }
+
+    form { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    input, select { padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; flex: 1; }
+    button { background: var(--accent); color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    button:hover { background: #1e40af; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid var(--border); padding: 12px; text-align: left; font-size: 14px; }
+    th { background: #f3f4f6; }
+    td .action-btn { margin-right: 8px; padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .edit-btn { background: #2563eb; color: #fff; }
+    .delete-btn { background: var(--danger); color: #fff; }
+
+    /* Toasts */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+    .toast { background: #fff; border-left: 6px solid; padding: 12px 18px; margin-top: 10px; border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15); min-width: 220px; font-size: 14px; animation: slideIn 0.3s ease; }
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--danger); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* Modal */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+      justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: #fff; padding: 20px; border-radius: 8px; width: 450px; max-width: 95%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .modal-content h3 { margin-bottom: 15px; }
+    .modal-content form { display: flex; flex-direction: column; gap: 12px; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">AU ERP</div>
+    <ul>
+      <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li><a href="department.html"><i class="fas fa-building"></i> Departments</a></li>
+      <li class="active"><a href="sections.html"><i class="fas fa-users"></i> Sections</a></li>
+      <li><a href="faculty.html"><i class="fas fa-chalkboard-teacher"></i> Faculty</a></li>
+      <li><a href="students.html"><i class="fas fa-user-graduate"></i> Students</a></li>
+      <li><a href="courses.html"><i class="fas fa-book"></i> Courses</a></li>
+      <li><a href="timetable.html"><i class="fas fa-calendar-alt"></i> Timetable</a></li>
+      <li><a href="holidays.html"><i class="fas fa-umbrella-beach"></i> Holidays</a></li>
+      <li><a href="attendance.html"><i class="fas fa-check-circle"></i> Attendance</a></li>
+      <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <img src="https://i.postimg.cc/cHN88t2D/AU.png" alt="AU Logo">
+        <h1>Section Management</h1>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Add Section</h2>
+      <form id="sectionForm">
+        <select id="program" required></select>
+        <select id="department" required></select>
+        <select id="batch" required></select>
+        <select id="semester" required>
+          <option value="">Select Semester</option>
+          <option value="1">1</option><option value="2">2</option>
+          <option value="3">3</option><option value="4">4</option>
+          <option value="5">5</option><option value="6">6</option>
+          <option value="7">7</option><option value="8">8</option>
+        </select>
+        <input type="text" id="sectionName" placeholder="Section Name (A/B/C)" required>
+        <button type="submit">Add</button>
+      </form>
+
+      <h2>Sections List</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>S.No</th><th>Program</th><th>Department</th><th>Batch</th><th>Semester</th><th>Section</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="sectionTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Edit Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h3>Edit Section</h3>
+      <form id="editForm">
+        <input type="hidden" id="editId">
+        <select id="editProgram" required></select>
+        <select id="editDepartment" required></select>
+        <select id="editBatch" required></select>
+        <select id="editSemester" required>
+          <option value="">Select Semester</option>
+          <option value="1">1</option><option value="2">2</option>
+          <option value="3">3</option><option value="4">4</option>
+          <option value="5">5</option><option value="6">6</option>
+          <option value="7">7</option><option value="8">8</option>
+        </select>
+        <input type="text" id="editSectionName" required>
+        <button type="submit">Update</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const toastContainer = document.getElementById("toastContainer");
+    function showToast(message, type="success") {
+      const toast = document.createElement("div");
+      toast.className = "toast " + type;
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    async function loadDropdowns() {
+      const [programRes, batchRes] = await Promise.all([
+        fetch("http://localhost:3000/api/dean/programs"),
+        fetch("http://localhost:3000/api/dean/batches")
+      ]);
+      const programs = await programRes.json();
+      const batches = await batchRes.json();
+
+      const programSelects = [document.getElementById("program"), document.getElementById("editProgram")];
+      const batchSelects = [document.getElementById("batch"), document.getElementById("editBatch")];
+
+      programSelects.forEach(sel => {
+        sel.innerHTML = `<option value="">Select Program</option>`;
+        programs.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name}</option>`);
+      });
+
+      batchSelects.forEach(sel => {
+        sel.innerHTML = `<option value="">Select Batch</option>`;
+        batches.forEach(b => sel.innerHTML += `<option value="${b.id}">${b.start_year}-${b.end_year}</option>`);
+      });
+    }
+
+    async function loadDepartments(programId, targetId) {
+      const res = await fetch(`http://localhost:3000/api/dean/programs/${programId}/departments`);
+      const departments = await res.json();
+      const select = document.getElementById(targetId);
+      select.innerHTML = `<option value="">Select Department</option>`;
+      departments.forEach(d => select.innerHTML += `<option value="${d.id}">${d.name}</option>`);
+    }
+
+    document.getElementById("program").addEventListener("change", e => {
+      if (e.target.value) loadDepartments(e.target.value, "department");
+    });
+    document.getElementById("editProgram").addEventListener("change", e => {
+      if (e.target.value) loadDepartments(e.target.value, "editDepartment");
+    });
+
+    async function loadSections() {
+      const res = await fetch("http://localhost:3000/api/dean/sections");
+      const sections = await res.json();
+      const tbody = document.getElementById("sectionTable");
+      tbody.innerHTML = "";
+      sections.forEach((s, index) => {
+        const row = `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${s.program_name}</td>
+            <td>${s.department_name}</td>
+            <td>${s.batch_name}</td>
+            <td>${s.semester}</td>
+            <td>${s.section_name}</td>
+            <td>
+              <button class="action-btn edit-btn" onclick="openEdit(${s.id}, ${s.program_id}, ${s.department_id}, ${s.batch_id}, ${s.semester}, '${s.section_name}')"><i class="fas fa-edit"></i></button>
+              <button class="action-btn delete-btn" onclick="deleteSection(${s.id})"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    document.getElementById("sectionForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const deptId = document.getElementById("department").value;
+      const batchId = document.getElementById("batch").value;
+      const semester = document.getElementById("semester").value;
+      const sectionName = document.getElementById("sectionName").value.trim();
+
+      if (!deptId || !batchId || !semester || !sectionName) {
+        return showToast("❌ Please fill all fields", "error");
+      }
+
+      const payload = { department_id: deptId, batch_id: batchId, semester, name: sectionName };
+      const res = await fetch("http://localhost:3000/api/dean/sections", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast("✅ Section added");
+        document.getElementById("sectionForm").reset();
+        loadSections();
+      } else {
+        const data = await res.json();
+        showToast("❌ " + (data.message || "Failed to add section"), "error");
+      }
+    });
+
+    async function openEdit(id, programId, deptId, batchId, semester, name) {
+      await loadDropdowns();
+      document.getElementById("editId").value = id;
+      document.getElementById("editProgram").value = programId;
+      await loadDepartments(programId, "editDepartment");
+      document.getElementById("editDepartment").value = deptId;
+      document.getElementById("editBatch").value = batchId;
+      document.getElementById("editSemester").value = semester;
+      document.getElementById("editSectionName").value = name;
+      document.getElementById("editModal").style.display = "flex";
+    }
+
+    document.getElementById("editForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const id = document.getElementById("editId").value;
+      const deptId = document.getElementById("editDepartment").value;
+      const batchId = document.getElementById("editBatch").value;
+      const semester = document.getElementById("editSemester").value;
+      const name = document.getElementById("editSectionName").value.trim();
+
+      if (!deptId || !batchId || !semester || !name) {
+        return showToast("❌ Please fill all fields", "error");
+      }
+
+      const payload = { department_id: deptId, batch_id: batchId, semester, name };
+      const res = await fetch(`http://localhost:3000/api/dean/sections/${id}`, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast("✅ Section updated");
+        document.getElementById("editModal").style.display = "none";
+        loadSections();
+      } else {
+        const data = await res.json();
+        showToast("❌ " + (data.message || "Failed to update section"), "error");
+      }
+    });
+
+    async function deleteSection(id) {
+      if (!confirm("Delete this section?")) return;
+      const res = await fetch(`http://localhost:3000/api/dean/sections/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        showToast("✅ Section deleted");
+        loadSections();
+      } else showToast("❌ Failed to delete section", "error");
+    }
+
+    window.onclick = e => {
+      const modal = document.getElementById("editModal");
+      if (e.target == modal) modal.style.display = "none";
+    };
+
+    function logout() {
+      localStorage.removeItem("deanId");
+      window.location.href = "login.html";
+    }
+
+    loadDropdowns();
+    loadSections();
+  </script>
+</body>
+</html>

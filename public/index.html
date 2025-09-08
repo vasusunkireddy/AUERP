@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Login - AU ERP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: url("https://i.postimg.cc/K81T8GL4/au-back2.jpg") no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+    }
+
+    .logo {
+      width: 280px;
+      margin-bottom: 24px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+    }
+
+    .login-container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px) saturate(150%);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .login-container h2 {
+      margin-bottom: 24px;
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    .login-container input::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .login-container button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.3s ease;
+    }
+
+    .login-container button:hover {
+      background: linear-gradient(135deg, #2563eb, #1e40af);
+      transform: scale(1.03);
+    }
+
+    .error {
+      margin-top: 12px;
+      color: #f87171;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .toast {
+      visibility: hidden;
+      min-width: 320px;
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      top: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateX(-50%);
+      transition: opacity 0.4s ease, top 0.4s ease;
+    }
+    .toast.show {
+      visibility: visible;
+      opacity: 1;
+      top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <img src="https://i.postimg.cc/cHN88t2D/AU.png" alt="AU Logo" class="logo">
+    <div class="login-container">
+      <h2>Student Login</h2>
+      <form id="loginForm">
+        <input type="email" id="email" placeholder="Alliance Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+      </form>
+      <div class="error" id="errorMsg"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const loginForm = document.getElementById("loginForm");
+    const errorMsg = document.getElementById("errorMsg");
+    const toast = document.getElementById("toast");
+
+    function showToast(message, isError = false) {
+      toast.innerText = message;
+      toast.style.background = isError
+        ? 'rgba(220,38,38,0.9)'
+        : 'rgba(34,197,94,0.9)';
+      toast.className = 'toast show';
+      setTimeout(() => { toast.className = 'toast'; }, 3000);
+    }
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorMsg.textContent = ""; 
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      // ✅ Only allow @ced.alliance.edu.in emails
+      if (!email.endsWith("@ced.alliance.edu.in")) {
+        errorMsg.textContent = "❌ Please use your CED Alliance email ID";
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:3000/api/student/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          // ✅ Store student session in localStorage
+          localStorage.setItem("studentToken", data.token);
+          localStorage.setItem("studentId", data.studentId);
+          localStorage.setItem("studentName", data.studentName);
+          localStorage.setItem("studentEmail", data.studentEmail);
+          localStorage.setItem("sectionId", data.sectionId);
+
+          showToast("Login Successful! Redirecting...");
+          setTimeout(() => {
+            window.location.href = "studentdashboard.html";
+          }, 1500);
+        } else {
+          errorMsg.textContent = data.message || "Invalid login credentials";
+        }
+      } catch (err) {
+        errorMsg.textContent = "⚠️ Server error, please try again later.";
+        console.error("Login error:", err);
+      }
+    });
+  </script>
+</body>
+</html>

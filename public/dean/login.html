@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>University ERP - Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: url("https://i.postimg.cc/K81T8GL4/au-back2.jpg") no-repeat center center fixed;
+      background-size: cover;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      color: #fff;
+    }
+
+    .logo {
+      width: 260px;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    }
+
+    .welcome-text {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .welcome-text h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+
+    .welcome-text p {
+      margin: 8px 0 0;
+      font-size: 16px;
+      color: #e5e5e5;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+
+    .login-container {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px) saturate(150%);
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      width: 90%;
+      max-width: 380px;
+      text-align: center;
+    }
+
+    .login-container h2 {
+      margin-bottom: 24px;
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .login-container label {
+      font-size: 14px;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      text-align: left;
+      color: #fff;
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      font-size: 14px;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+    }
+
+    .login-container input::placeholder {
+      color: rgba(255,255,255,0.7);
+    }
+
+    .login-container button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg,#3b82f6,#2563eb);
+      border: none;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.3s ease;
+    }
+
+    .login-container button:hover {
+      background: linear-gradient(135deg,#2563eb,#1e40af);
+      transform: scale(1.02);
+    }
+
+    .toast {
+      visibility: hidden;
+      min-width: 320px;
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      top: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateX(-50%);
+      transition: opacity 0.4s ease, top 0.4s ease;
+    }
+
+    .toast.show {
+      visibility: visible;
+      opacity: 1;
+      top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <img src="https://i.postimg.cc/cHN88t2D/AU.png" alt="Alliance University Logo" class="logo">
+
+  <div class="welcome-text">
+    <h1>Welcome to Alliance University</h1>
+    <p>ERP Portal – Please log in with your credentials</p>
+  </div>
+
+  <div class="login-container">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <label for="userId">User ID</label>
+      <input type="text" id="userId" placeholder="Enter User ID" required>
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="********" required>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const loginForm = document.getElementById('loginForm'),
+          toast = document.getElementById('toast');
+
+    function showToast(message, isError=false) {
+      toast.innerText = message;
+      toast.style.background = isError ? 'rgba(220,38,38,0.9)' : 'rgba(34,197,94,0.9)';
+      toast.className = 'toast show';
+      setTimeout(() => { toast.className = 'toast'; }, 3000);
+    }
+
+    loginForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const userId = document.getElementById('userId').value.trim(),
+            password = document.getElementById('password').value.trim();
+
+      try {
+        const res = await fetch('http://localhost:3000/api/dean/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          showToast('Login Successful! Redirecting...');
+          setTimeout(() => { window.location.href = '../dean/dashboard.html'; }, 1500);
+        } else {
+          showToast(data.message || 'Invalid User ID or Password', true);
+        }
+      } catch (err) {
+        showToast('Server error. Try again later.', true);
+        console.error('Login error:', err);
+      }
+    });
+  </script>
+</body>
+</html>

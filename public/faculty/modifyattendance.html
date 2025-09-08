@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Modify Attendance - AU ERP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root { --primary:#1e293b; --accent:#2563eb; --bg:#f9fafb; --border:#e5e7eb; --text:#1f2937; --danger:#dc2626; --success:#16a34a; }
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+    body{display:flex;min-height:100vh;background:var(--bg);color:var(--text)}
+    .sidebar{width:250px;background:linear-gradient(180deg,#1e293b,#111827);color:#fff;height:100vh;position:fixed;display:flex;flex-direction:column}
+    .sidebar-header{background:#2563eb;padding:20px;text-align:center;font-size:18px;font-weight:700;letter-spacing:1px}
+    .sidebar ul{list-style:none;margin-top:20px;padding:0 10px;flex-grow:1}
+    .sidebar li{margin:6px 0}
+    .sidebar li a{display:flex;align-items:center;padding:12px 14px;text-decoration:none;color:#d1d5db;font-size:14px;border-radius:8px;transition:all .3s ease}
+    .sidebar li a i{width:22px;margin-right:10px}
+    .sidebar li a:hover{background:rgba(37,99,235,.2);color:#fff}
+    .sidebar li.active a{background:#2563eb;color:#fff;font-weight:600}
+    .main-content{margin-left:250px;padding:24px;width:calc(100% - 250px);display:flex;flex-direction:column;min-height:100vh}
+    .topbar{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:14px 20px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:24px}
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .topbar-left img{height:45px}
+    .topbar h1{font-size:20px;font-weight:600;color:var(--primary)}
+    .section{background:#fff;padding:24px;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);flex-grow:1}
+    .section h2{font-size:18px;font-weight:600;margin-bottom:20px;color:var(--primary)}
+    .filters{display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+    .hint{font-size:12px;color:#6b7280;margin-bottom:12px}
+    select,input{padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;outline:none}
+    table{width:100%;border-collapse:collapse;margin-top:15px}
+    th,td{border:1px solid var(--border);padding:10px;text-align:center;font-size:14px;vertical-align:middle}
+    th{background:#f3f4f6}
+    .empty{padding:16px;color:#6b7280;text-align:center}
+    .student-photo{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--border);background:#f3f4f6}
+    .present-box input{width:22px;height:22px;cursor:pointer}
+    button{padding:10px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;transition:.2s}
+    button:hover{background:#1e40af}
+    button[disabled]{opacity:.6;cursor:not-allowed}
+    .banner{display:none;margin-bottom:14px;padding:12px 16px;border-radius:8px;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+    .warn{display:none;margin-bottom:14px;padding:12px 16px;border-radius:8px;background:#fff7ed;color:#92400e;border:1px solid #fde68a}
+    /* Modal */
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center}
+    .modal-card{background:#fff;border-radius:12px;width:560px;max-width:95%;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+    .modal-head{padding:14px 18px;border-bottom:1px solid var(--border);font-weight:600}
+    .modal-body{max-height:55vh;overflow:auto;padding:14px 18px}
+    .modal-body ul{list-style:decimal inside;margin-top:8px}
+    .modal-foot{display:flex;gap:10px;justify-content:flex-end;padding:12px 18px;border-top:1px solid var(--border)}
+    .btn-muted{background:#6b7280}
+    .btn-danger{background:#dc2626}
+    #toast{position:fixed;top:16px;right:16px;padding:10px 14px;border-radius:8px;color:#fff;display:none;z-index:2000}
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">AU ERP</div>
+    <ul>
+      <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li><a href="timetable.html"><i class="fas fa-calendar-alt"></i> Timetable</a></li>
+      <li><a href="attendance.html"><i class="fas fa-check-circle"></i> Attendance</a></li>
+      <li class="active"><a href="modifyattendance.html"><i class="fas fa-pen-to-square"></i> Modify Attendance</a></li>
+      <li><a href="login.html" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <img src="https://i.postimg.cc/cHN88t2D/AU.png" alt="AU Logo">
+        <h1>Modify Attendance</h1>
+      </div>
+    </div>
+
+    <div class="section">
+      <div id="successBanner" class="banner">✅ Changes saved.</div>
+      <div id="errorBanner" class="warn"></div>
+
+      <h2>Edit a Past Session</h2>
+
+      <div class="filters">
+        <input type="date" id="attendanceDate" required>
+        <select id="sessionSelect"><option value="">Select Session</option></select>
+      </div>
+
+      <div id="sessionInfo" class="hint"></div>
+
+      <form id="attendanceForm" autocomplete="off">
+        <div class="actions" style="text-align:right;margin-bottom:10px">
+          <button type="button" id="markAllPresentBtn">Mark All Present</button>
+          <button type="button" id="markAllAbsentBtn" class="btn-muted">Mark All Absent</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Profile</th>
+              <th>Roll No</th>
+              <th>Name</th>
+              <th>Present?</th>
+            </tr>
+          </thead>
+          <tbody id="studentTable"><tr><td colspan="4" class="empty">Pick a date & session.</td></tr></tbody>
+        </table>
+        <br>
+        <div style="display:flex;gap:12px;justify-content:flex-end">
+          <button id="clearBtn" type="button" class="btn-muted">Clear</button>
+          <button id="submitBtn" type="submit" disabled>Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="modal" id="confirmModal">
+    <div class="modal-card">
+      <div class="modal-head">Review Absentees</div>
+      <div class="modal-body">
+        <div id="confirmText">You’re about to save changes. The following students are marked <b>Absent</b>:</div>
+        <ul id="absentList"></ul>
+      </div>
+      <div class="modal-foot">
+        <button type="button" id="cancelSubmit" class="btn-muted">Cancel</button>
+        <button type="button" id="confirmSubmit" class="btn-danger">Yes, Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+<script>
+  const BASE_URL="http://localhost:3000";
+  const facultyId = localStorage.getItem("facultyId");
+  const facultyName = localStorage.getItem("facultyName") || "Faculty";
+  if (!facultyId) { alert("Not logged in. Please log in as faculty."); window.location.href="login.html"; }
+
+  const $ = id => document.getElementById(id);
+  const localISODate = (d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const showBanner=(m)=>{const b=$("successBanner"); b.textContent=m; b.style.display="block"; setTimeout(()=>b.style.display="none",3200);};
+  const showError=(m)=>{ const e=$("errorBanner"); e.textContent=m; e.style.display="block"; setTimeout(()=>e.style.display="none",6000); };
+  const toast=(msg,ok=true)=>{ const t=$("toast"); t.style.background= ok ? "var(--success)" : "var(--danger)"; t.textContent=msg; t.style.display="block"; setTimeout(()=> t.style.display="none",2500); };
+
+  const enableSubmit = (v)=> $("submitBtn").disabled = !v;
+  function dedupeStudents(rows){ const m=new Map(); (rows||[]).forEach(r=>{ if(!m.has(r.id)) m.set(r.id,r); }); return Array.from(m.values()); }
+
+  // load sessions for date
+  async function loadSessions(){
+    const dateInput=$("attendanceDate"); if(!dateInput.value) dateInput.value=localISODate();
+    const date=dateInput.value;
+    try{
+      const res = await fetch(`${BASE_URL}/api/faculty/${facultyId}/sessions?date=${date}`);
+      const sessions = await res.json();
+      const sel=$("sessionSelect"); sel.innerHTML="<option value=''>Select Session</option>";
+      if(!Array.isArray(sessions)||sessions.length===0){
+        $("sessionInfo").textContent="No sessions scheduled for this date.";
+        $("studentTable").innerHTML=`<tr><td colspan="4" class="empty">No students to display.</td></tr>`;
+        enableSubmit(false); return;
+      }
+      sessions.forEach(s=>{
+        const opt=document.createElement("option");
+        opt.value=s.session_id;
+        opt.textContent=`Session ${s.session} (${s.start_time} - ${s.end_time}) — ${s.course_code} • ${s.section_name}`;
+        opt.dataset.courseId=s.course_id;
+        opt.dataset.courseName=s.course_name;
+        opt.dataset.startTime=s.start_time;
+        opt.dataset.endTime=s.end_time;
+        opt.dataset.sessionNumber=s.session;
+        sel.appendChild(opt);
+      });
+      $("sessionInfo").textContent=""; enableSubmit(false);
+    }catch(err){ console.error("sessions load",err); toast("Failed to load sessions",false); }
+  }
+
+  // load students + current attendance state (if any)
+  async function loadStudents(){
+    const sel=$("sessionSelect");
+    const sessionId=sel.value;
+    const courseId=sel.selectedOptions[0]?.dataset.courseId;
+    const date=$("attendanceDate").value;
+    if(!sessionId||!courseId||!date) return;
+
+    const sNum = sel.selectedOptions[0].dataset.sessionNumber;
+    const sStart = sel.selectedOptions[0].dataset.startTime;
+    const sEnd = sel.selectedOptions[0].dataset.endTime;
+    const courseName = sel.selectedOptions[0].dataset.courseName;
+    $("sessionInfo").innerHTML=`<strong>Faculty:</strong> ${facultyName} | <strong>Course:</strong> ${courseName} | <strong>Timing:</strong> ${sStart} - ${sEnd} (S${sNum})`;
+
+    try{
+      const res = await fetch(`${BASE_URL}/api/faculty/${facultyId}/students?sessionId=${sessionId}&date=${date}&courseId=${courseId}`);
+      const raw = await res.json();
+      const students = dedupeStudents(Array.isArray(raw)?raw:[]);
+      const tbody=$("studentTable");
+      if(!students.length){ tbody.innerHTML=`<tr><td colspan="4" class="empty">No students found.</td></tr>`; enableSubmit(false); return; }
+
+      tbody.innerHTML="";
+      students.forEach(s=>{
+        const photo=s.photo || "https://i.postimg.cc/fbVwm1L2/Bon.jpg";
+        const isPresent = s.status === "Present";
+        tbody.insertAdjacentHTML("beforeend",`
+          <tr id="student-${s.id}">
+            <td><img src="${photo}" class="student-photo" alt="profile"></td>
+            <td>${s.registration_no || "-"}</td>
+            <td>${s.name || "-"}</td>
+            <td class="present-box"><input type="checkbox" data-id="${s.id}" ${isPresent?"checked":""}></td>
+          </tr>
+        `);
+      });
+
+      // allow editing
+      enableSubmit(true);
+    }catch(err){ console.error("students load",err); toast("Failed to load students", false); enableSubmit(false); }
+  }
+
+  // build records to send
+  function buildRecords(){
+    const seen=new Set();
+    const rows=[...document.querySelectorAll("#studentTable tr")];
+    const rec=[];
+    rows.forEach(r=>{
+      const cb=r.querySelector("input[type='checkbox']");
+      if(!cb) return;
+      if(seen.has(cb.dataset.id)) return; seen.add(cb.dataset.id);
+      const name = r.children?.[2]?.textContent?.trim() || "";
+      const roll = r.children?.[1]?.textContent?.trim() || "";
+      rec.push({ student_id: cb.dataset.id, name, roll, status: cb.checked ? "Present" : "Absent", scanned_photo: null });
+    });
+    return rec;
+  }
+
+  // confirm modal
+  function openConfirm(absentees){
+    const list=$("absentList"); list.innerHTML="";
+    if(absentees.length===0){
+      $("confirmText").innerHTML=`All students are marked <b>Present</b>. Do you want to save?`;
+    } else {
+      $("confirmText").innerHTML=`You’re about to save changes. The following students are marked <b>Absent</b>:`;
+      absentees.forEach(a=>{ const li=document.createElement("li"); li.textContent=`${a.name||"-"} (${a.roll||"-"})`; list.appendChild(li); });
+    }
+    $("confirmModal").style.display="flex";
+  }
+  function closeConfirm(){ $("confirmModal").style.display="none"; }
+
+  // events
+  $("attendanceDate").addEventListener("change", async ()=>{ await loadSessions(); $("studentTable").innerHTML=`<tr><td colspan="4" class="empty">Pick a session to load students.</td></tr>`; enableSubmit(false); });
+  $("sessionSelect").addEventListener("change", loadStudents);
+  $("markAllPresentBtn").addEventListener("click", ()=> document.querySelectorAll("#studentTable input[type='checkbox']").forEach(cb=>cb.checked=true));
+  $("markAllAbsentBtn").addEventListener("click", ()=> document.querySelectorAll("#studentTable input[type='checkbox']").forEach(cb=>cb.checked=false));
+  $("clearBtn").addEventListener("click", ()=>{ $("sessionSelect").value=""; $("studentTable").innerHTML=`<tr><td colspan="4" class="empty">Pick a session to load students.</td></tr>`; $("sessionInfo").textContent=""; enableSubmit(false); });
+
+  // form submit -> open confirm
+  $("attendanceForm").addEventListener("submit",(e)=>{ e.preventDefault(); const rec=buildRecords(); if(!rec.length){ toast("No students to save", false); return; } const abs=rec.filter(r=>r.status==="Absent"); openConfirm(abs); });
+  $("cancelSubmit").addEventListener("click", closeConfirm);
+
+  // confirm -> POST with force:true so modify actually overrides existing attendance
+  $("confirmSubmit").addEventListener("click", async ()=>{
+    closeConfirm();
+    const sel=$("sessionSelect"); const sessionId=sel.value; const courseId=sel.selectedOptions[0]?.dataset.courseId; const date=$("attendanceDate").value;
+    if(!sessionId||!courseId||!date){ toast("Pick session & date", false); return; }
+
+    const records = buildRecords().map(({name,roll,...r})=>r);
+
+    const payload = {
+      faculty_id: facultyId,
+      session_id: sessionId,
+      course_id: courseId,
+      date,
+      mode: "manual",
+      records,
+      force: true   // <---- CRITICAL: tells server to overwrite existing attendance
+    };
+
+    try{
+      const res = await fetch(`${BASE_URL}/api/faculty/attendance`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(payload)
+      });
+
+      // handle possible 409 (conflict) and other statuses
+      if (res.status === 409) {
+        const out = await res.json().catch(()=>({ message: "Conflict" }));
+        showError(out.message || "Attendance already exists and could not be overwritten.");
+        return;
+      }
+
+      const out = await res.json();
+      if (!res.ok || !out.success) {
+        showError(out.message || "Failed to save changes");
+        return;
+      }
+
+      showBanner("✅ Attendance changes saved.");
+      $("studentTable").innerHTML = `<tr><td colspan="4" class="empty">Saved for ${date}. Pick another session to edit.</td></tr>`;
+      $("sessionSelect").value=""; $("sessionInfo").textContent=""; enableSubmit(false);
+    }catch(err){
+      console.error("save error", err);
+      showError("Network error while saving");
+    }
+  });
+
+  function logout(){ localStorage.clear(); window.location.href="login.html"; }
+
+  document.addEventListener("DOMContentLoaded", ()=>{ $("attendanceDate").value=localISODate(); loadSessions(); });
+</script>
+</body>
+</html>

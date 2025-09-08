@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dean Dashboard - AU ERP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root{--primary:#1e293b;--accent:#2563eb;--bg:#f9fafb;--border:#e5e7eb;--text:#1f2937;--hover:#f3f4f6}
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+    body{display:flex;min-height:100vh;background:var(--bg);color:var(--text)}
+    .sidebar{width:250px;background:linear-gradient(180deg,#1e293b,#111827);color:#fff;height:100vh;position:fixed;display:flex;flex-direction:column;box-shadow:2px 0 10px rgba(0,0,0,0.15)}
+    .sidebar-header{background:#2563eb;padding:18px;text-align:center;font-size:18px;font-weight:700}
+    .dean-info{text-align:center;padding:20px 15px;border-bottom:1px solid rgba(255,255,255,0.1)}
+    .dean-info img{width:70px;height:70px;border-radius:50%;border:3px solid #2563eb;object-fit:cover;margin-bottom:10px;background:#fff}
+    .dean-info .name{font-size:15px;font-weight:600;margin-bottom:4px}
+    .dean-info .email{font-size:12px;color:#d1d5db}
+    .dean-info .role{font-size:12px;color:#9ca3af}
+    .sidebar ul{list-style:none;margin-top:20px;padding:0 10px;flex-grow:1}
+    .sidebar li{margin:6px 0}
+    .sidebar li a{display:flex;align-items:center;padding:12px 14px;text-decoration:none;color:#d1d5db;font-size:14px;border-radius:8px;transition:all 0.3s ease}
+    .sidebar li a i{width:22px;margin-right:10px}
+    .sidebar li a:hover{background:rgba(37,99,235,0.15);color:#fff}
+    .sidebar li.active a{background:#2563eb;color:#fff;font-weight:600}
+    .sidebar ul li:last-child{margin-top:auto;margin-bottom:20px}
+    .main-content{margin-left:250px;padding:24px;width:calc(100% - 250px);display:flex;flex-direction:column;min-height:100vh}
+    .topbar{display:flex;justify-content:space-between;align-items:center;background:#fff;padding:14px 18px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin-bottom:24px}
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .topbar-left img{height:40px}
+    .topbar h1{font-size:20px;font-weight:600;color:var(--primary)}
+    .welcome{font-size:14px;text-align:right;color:var(--text)}
+    .welcome strong{color:var(--accent)}
+    .welcome .email{font-size:12px;color:#6b7280;display:block}
+    .section{background:#fff;padding:22px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);flex-grow:1}
+    .section h2{font-size:18px;font-weight:600;margin-bottom:18px}
+    .cards{display:flex;gap:18px;flex-wrap:wrap}
+    .card{flex:1;min-width:220px;background:#f3f4f6;border:1px solid var(--border);border-radius:8px;padding:22px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.08);transition:transform 0.2s ease,box-shadow 0.2s ease}
+    .card:hover{transform:translateY(-3px);box-shadow:0 3px 8px rgba(0,0,0,0.12)}
+    .card i{font-size:28px;margin-bottom:12px;color:var(--accent)}
+    .card h3{font-size:16px;margin-bottom:8px;color:var(--primary)}
+    .card p{font-size:13px;color:#4b5563;margin-bottom:14px}
+    .card button{padding:8px 14px;background:var(--accent);border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:13px;transition:background 0.3s}
+    .card button:hover{background:#1e40af}
+    footer{text-align:center;font-size:12px;color:#6b7280;padding:16px 0;margin-top:auto}
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">AU ERP</div>
+    <div class="dean-info">
+      <img id="deanPhoto" src="https://i.postimg.cc/fbVwm1L2/Bon.jpg" alt="Dean">
+      <div class="name" id="deanName">Dean</div>
+      <div class="email" id="deanEmail">dean@au.edu</div>
+      <div class="role">University Dean</div>
+    </div>
+    <ul>
+      <li class="active"><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li><a href="department.html"><i class="fas fa-building"></i> Departments</a></li>
+      <li><a href="sections.html"><i class="fas fa-users"></i> Sections</a></li>
+      <li><a href="faculty.html"><i class="fas fa-chalkboard-teacher"></i> Faculty</a></li>
+      <li><a href="students.html"><i class="fas fa-user-graduate"></i> Students</a></li>
+      <li><a href="courses.html"><i class="fas fa-book"></i> Courses</a></li>
+      <li><a href="timetable.html"><i class="fas fa-calendar-alt"></i> Timetable</a></li>
+      <li><a href="holidays.html"><i class="fas fa-umbrella-beach"></i> Holidays</a></li>
+      <li><a href="attendance.html"><i class="fas fa-check-circle"></i> Attendance</a></li>
+      <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+  </div>
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <img src="https://i.postimg.cc/cHN88t2D/AU.png" alt="AU Logo">
+        <h1>Dean Dashboard</h1>
+      </div>
+      <div class="welcome">
+        <span>Welcome, <strong id="welcomeName">Dean</strong></span>
+        <span class="email" id="welcomeEmail">dean@au.edu</span>
+      </div>
+    </div>
+    <div class="section">
+      <h2>Overview</h2>
+      <div class="cards">
+        <div class="card">
+          <i class="fas fa-building"></i>
+          <h3>Departments</h3>
+          <p>Create and manage university departments.</p>
+          <button onclick="window.location.href='department.html'">Manage</button>
+        </div>
+        <div class="card">
+          <i class="fas fa-users"></i>
+          <h3>Sections</h3>
+          <p>Create sections under departments and assign faculty.</p>
+          <button onclick="window.location.href='sections.html'">Manage</button>
+        </div>
+        <div class="card">
+          <i class="fas fa-chalkboard-teacher"></i>
+          <h3>Faculty</h3>
+          <p>Assign faculty to sections and manage details.</p>
+          <button onclick="window.location.href='faculty.html'">Manage</button>
+        </div>
+        <div class="card">
+          <i class="fas fa-user-graduate"></i>
+          <h3>Students</h3>
+          <p>View and manage student details.</p>
+          <button onclick="window.location.href='students.html'">Manage</button>
+        </div>
+        <div class="card">
+          <i class="fas fa-book"></i>
+          <h3>Courses</h3>
+          <p>Add, edit and manage courses/subjects.</p>
+          <button onclick="window.location.href='courses.html'">Manage</button>
+        </div>
+        <div class="card">
+          <i class="fas fa-calendar-alt"></i>
+          <h3>Timetable</h3>
+          <p>Create and manage class timetables.</p>
+          <button onclick="window.location.href='timetable.html'">Manage</button>
+        </div>
+        <div class="card">
+          <i class="fas fa-umbrella-beach"></i>
+          <h3>Holidays</h3>
+          <p>Manage university holidays.</p>
+          <button onclick="window.location.href='holidays.html'">Manage</button>
+        </div>
+        <div class="card">
+          <i class="fas fa-check-circle"></i>
+          <h3>Attendance</h3>
+          <p>View and track student attendance.</p>
+          <button onclick="window.location.href='attendance.html'">View</button>
+        </div>
+      </div>
+    </div>
+    <footer>© 2025 Alliance University. All rights reserved.</footer>
+  </div>
+  <script>
+    function logout(){if(confirm("Log out?")){localStorage.removeItem("deanId");window.location.href="login.html"}}
+  </script>
+</body>
+</html>

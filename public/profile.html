@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Update Profile - AU ERP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {--primary:#1e293b;--accent:#2563eb;--bg:#f9fafb;--border:#e5e7eb;--text:#1f2937;--hover:#f3f4f6}
+    * {margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+    body {display:flex;min-height:100vh;background:var(--bg);color:var(--text)}
+
+    .sidebar {width:250px;background:linear-gradient(180deg,#1e293b,#111827);color:#fff;height:100vh;position:fixed;display:flex;flex-direction:column;box-shadow:2px 0 10px rgba(0,0,0,0.15)}
+    .sidebar-header {background:#2563eb;padding:18px;text-align:center;font-size:18px;font-weight:700}
+    .student-info {text-align:center;padding:20px 15px;border-bottom:1px solid rgba(255,255,255,0.1)}
+    .student-info img {width:70px;height:70px;border-radius:50%;border:3px solid #2563eb;object-fit:cover;margin-bottom:10px;background:#fff}
+    .student-info .name {font-size:15px;font-weight:600;margin-bottom:4px}
+    .student-info .email {font-size:12px;color:#d1d5db}
+    .student-info .role {font-size:12px;color:#9ca3af}
+    .sidebar ul {list-style:none;margin-top:20px;padding:0 10px;flex-grow:1}
+    .sidebar li {margin:6px 0}
+    .sidebar li a {display:flex;align-items:center;padding:12px 14px;text-decoration:none;color:#d1d5db;font-size:14px;border-radius:8px;transition:all 0.3s ease}
+    .sidebar li a i {width:22px;margin-right:10px}
+    .sidebar li a:hover {background:rgba(37,99,235,0.15);color:#fff}
+    .sidebar li.active a {background:#2563eb;color:#fff;font-weight:600}
+    .sidebar ul li:last-child {margin-top:auto;margin-bottom:20px}
+
+    .main-content {margin-left:250px;padding:24px;width:calc(100% - 250px);display:flex;flex-direction:column;min-height:100vh}
+    .topbar {display:flex;justify-content:space-between;align-items:center;background:#fff;padding:14px 18px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin-bottom:24px}
+    .topbar-left {display:flex;align-items:center;gap:12px}
+    .topbar-left img {height:40px}
+    .topbar h1 {font-size:20px;font-weight:600;color:var(--primary)}
+    .welcome {font-size:14px;text-align:right;color:var(--text)}
+    .welcome strong {color:var(--accent)}
+    .welcome .email {font-size:12px;color:#6b7280;display:block}
+
+    .profile-card {background:#fff;padding:24px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.1);max-width:900px;margin:0 auto;flex-grow:1}
+    .profile-header {text-align:center;margin-bottom:20px}
+    .profile-header img {width:120px;height:120px;border-radius:50%;border:4px solid var(--accent);object-fit:cover;margin-bottom:12px}
+    .profile-header h2 {font-size:20px;font-weight:700;color:var(--primary);margin-bottom:4px}
+    .profile-header p {font-size:14px;color:#374151}
+
+    form {display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    label {font-size:14px;font-weight:600;margin-bottom:6px;display:block}
+    input {width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:14px}
+    input[type="file"] {padding:6px}
+    .full {grid-column:1 / -1}
+
+    .form-actions {text-align:center;margin-top:24px;grid-column:1 / -1}
+    button {padding:10px 20px;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer}
+    .save-btn {background:#16a34a;color:#fff;margin-right:12px}
+    .save-btn:hover {background:#15803d}
+    .cancel-btn {background:#dc2626;color:#fff}
+    .cancel-btn:hover {background:#b91c1c}
+
+    footer {text-align:center;font-size:12px;color:#6b7280;padding:16px 0;margin-top:auto}
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">AU ERP</div>
+    <div class="student-info">
+      <img id="sidebarPhoto" src="https://i.postimg.cc/fbVwm1L2/Bon.jpg" alt="Student">
+      <div class="name" id="sidebarName">Student</div>
+      <div class="email" id="sidebarEmail">student@ced.alliance.edu.in</div>
+      <div class="role">University Student</div>
+    </div>
+    <ul>
+      <li><a href="studentdashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li><a href="studenttimetable.html"><i class="fas fa-calendar-alt"></i> Timetable</a></li>
+      <li><a href="studentattendance.html"><i class="fas fa-check-circle"></i> Attendance</a></li>
+      <li class="active"><a href="profile.html"><i class="fas fa-user"></i> Profile</a></li>
+      <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <img src="https://i.postimg.cc/cHN88t2D/AU.png" alt="AU Logo">
+        <h1>Update Profile</h1>
+      </div>
+      <div class="welcome">
+        <span>Welcome, <strong id="welcomeName">Student</strong></span>
+        <span class="email" id="welcomeEmail">student@ced.alliance.edu.in</span>
+      </div>
+    </div>
+
+    <div class="profile-card">
+      <div class="profile-header">
+        <img id="profilePhoto" src="https://i.postimg.cc/fbVwm1L2/Bon.jpg" alt="Profile">
+        <h2 id="profileName">Student Name</h2>
+        <p id="profileProgram">Program Info</p>
+      </div>
+
+      <form id="profileForm">
+        <div>
+          <label for="dob">Date of Birth</label>
+          <input type="date" id="dob" name="dob">
+        </div>
+        <div>
+          <label for="mobile">Mobile No</label>
+          <input type="text" id="mobile" name="mobile">
+        </div>
+        <div>
+          <label for="aadhar">Aadhar Number</label>
+          <input type="text" id="aadhar" name="aadhar">
+        </div>
+        <div>
+          <label for="student_uid">University ID</label>
+          <input type="text" id="student_uid" name="student_uid" disabled>
+        </div>
+        <div>
+          <label for="alt_email">Alternate Email</label>
+          <input type="email" id="alt_email" name="alt_email">
+        </div>
+        <div>
+          <label for="photo">Profile Photo</label>
+          <input type="file" id="photo" name="photo" accept="image/*">
+        </div>
+        <div class="full">
+          <label for="address">Address</label>
+          <input type="text" id="address" name="address">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="save-btn">Save Changes</button>
+          <button type="button" class="cancel-btn" onclick="window.location.href='studentdashboard.html'">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <footer>© 2025 Alliance University. All rights reserved.</footer>
+  </div>
+
+<script>
+  const studentId = localStorage.getItem("studentId");
+  if (!studentId) {
+    alert("Not logged in. Redirecting...");
+    window.location.href = "index.html";
+  } else {
+    fetch(`/api/student/${studentId}/profile`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("sidebarName").textContent = data.name;
+        document.getElementById("sidebarEmail").textContent = data.email;
+        document.getElementById("sidebarPhoto").src = data.photo || "https://i.postimg.cc/fbVwm1L2/Bon.jpg";
+        document.getElementById("welcomeName").textContent = data.name;
+        document.getElementById("welcomeEmail").textContent = data.email;
+        document.getElementById("profilePhoto").src = data.photo || "https://i.postimg.cc/fbVwm1L2/Bon.jpg";
+        document.getElementById("profileName").textContent = data.name;
+        document.getElementById("profileProgram").textContent = `${data.semester ? "Semester " + data.semester : ""} ${data.department_name || ""} ${data.section_name || ""}`;
+        document.getElementById("dob").value = data.dob || "";
+        document.getElementById("mobile").value = data.mobile || "";
+        document.getElementById("aadhar").value = data.aadhar || "";
+        document.getElementById("student_uid").value = data.registration_no || "";
+        document.getElementById("alt_email").value = data.alt_email || "";
+        document.getElementById("address").value = data.address || "";
+      });
+
+    document.getElementById("photo").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const previewUrl = URL.createObjectURL(file);
+        document.getElementById("profilePhoto").src = previewUrl;
+        document.getElementById("sidebarPhoto").src = previewUrl;
+      }
+    });
+
+    document.getElementById("profileForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      formData.append("dob", document.getElementById("dob").value);
+      formData.append("mobile", document.getElementById("mobile").value);
+      formData.append("aadhar", document.getElementById("aadhar").value);
+      formData.append("alt_email", document.getElementById("alt_email").value);
+      formData.append("address", document.getElementById("address").value);
+      if (document.getElementById("photo").files[0]) {
+        formData.append("photo", document.getElementById("photo").files[0]);
+      }
+
+      const res = await fetch(`/api/student/${studentId}/profile`, {
+        method: "PUT",
+        body: formData
+      });
+
+      if (res.ok) {
+        alert("Profile updated successfully!");
+        window.location.href = "studentdashboard.html";
+      } else {
+        const error = await res.json();
+        alert("Error: " + (error.error || "Update failed"));
+      }
+    });
+  }
+
+  function logout() {
+    if (confirm("Log out?")) {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+  }
+</script>
+</body>
+</html>

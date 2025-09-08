@@ -19,4 +19,18 @@ rad.json
 #License-file
 *.flf
 #Test results file
-TestResults.xml
+TestResults.xmlnode_modules
+temp_backup/
+uploads/
+*.zip
+*.tar.gz
+*.exe
+*.mp4
+*.mov
+*.db
+.env
+.vscode/
+.DS_Store
+npm-debug.log
+yarn-debug.log
+*.log

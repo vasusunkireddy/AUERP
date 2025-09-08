@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faculty - Dean Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1e293b;
+      --accent: #2563eb;
+      --bg: #f9fafb;
+      --border: #e5e7eb;
+      --text: #1f2937;
+      --danger: #dc2626;
+      --success: #16a34a;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { display: flex; min-height: 100vh; background: var(--bg); color: var(--text); }
+
+    .sidebar { width: 250px; background: linear-gradient(180deg, #1e293b, #111827); color: #fff; height: 100vh; position: fixed; display: flex; flex-direction: column; }
+    .sidebar-header { background: #2563eb; padding: 18px; text-align: center; font-size: 18px; font-weight: 700; }
+    .sidebar ul { list-style: none; margin-top: 20px; padding: 0 10px; flex-grow: 1; }
+    .sidebar li { margin: 6px 0; }
+    .sidebar li a { display: flex; align-items: center; padding: 12px 14px; text-decoration: none; color: #d1d5db; font-size: 14px; border-radius: 8px; transition: all 0.3s ease; }
+    .sidebar li a i { width: 22px; margin-right: 10px; }
+    .sidebar li a:hover { background: rgba(37,99,235,0.15); color: #fff; }
+    .sidebar li.active a { background: #2563eb; color: #fff; font-weight: 600; }
+
+    .main-content { margin-left: 250px; padding: 24px; width: calc(100% - 250px); display: flex; flex-direction: column; min-height: 100vh; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 14px 18px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 24px; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-left img { height: 40px; }
+    .topbar h1 { font-size: 20px; font-weight: 600; color: var(--primary); }
+
+    .section { background: #fff; padding: 22px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-grow: 1; }
+    .section h2 { font-size: 18px; font-weight: 600; margin-bottom: 18px; }
+
+    form { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    input, select { padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; flex: 1; }
+    button { background: var(--accent); color: #fff; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    button:hover { background: #1e40af; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid var(--border); padding: 12px; text-align: left; font-size: 14px; vertical-align: middle; }
+    th { background: #f3f4f6; }
+    td img { border-radius: 50%; width: 40px; height: 40px; object-fit: cover; }
+    td .action-btn { margin-right: 8px; padding: 6px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .edit-btn { background: #2563eb; color: #fff; }
+    .delete-btn { background: #dc2626; color: #fff; }
+
+    /* Toasts */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+    .toast { background: #fff; border-left: 6px solid; padding: 12px 18px; margin-top: 10px; border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15); min-width: 220px; font-size: 14px; animation: slideIn 0.3s ease; }
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--danger); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* Modal */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+      justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: #fff; padding: 20px; border-radius: 8px; width: 450px; max-width: 95%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .modal-content h3 { margin-bottom: 15px; }
+    .modal-content form { display: flex; flex-direction: column; gap: 12px; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">AU ERP</div>
+    <ul>
+      <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li><a href="department.html"><i class="fas fa-building"></i> Departments</a></li>
+      <li><a href="sections.html"><i class="fas fa-users"></i> Sections</a></li>
+      <li class="active"><a href="faculty.html"><i class="fas fa-chalkboard-teacher"></i> Faculty</a></li>
+      <li><a href="students.html"><i class="fas fa-user-graduate"></i> Students</a></li>
+       <li><a href="courses.html"><i class="fas fa-book"></i> Courses</a></li>
+      <li><a href="timetable.html"><i class="fas fa-calendar-alt"></i> Timetable</a></li>
+      <li><a href="holidays.html"><i class="fas fa-umbrella-beach"></i> Holidays</a></li>
+      <li><a href="attendance.html"><i class="fas fa-check-circle"></i> Attendance</a></li>
+      <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <img src="https://i.postimg.cc/cHN88t2D/AU.png" alt="AU Logo">
+        <h1>Faculty Management</h1>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Add Faculty</h2>
+      <form id="facultyForm">
+        <input type="text" id="facultyUserId" placeholder="User ID (e.g. fac101)" required>
+        <input type="text" id="facultyName" placeholder="Full Name" required>
+        <input type="email" id="facultyEmail" placeholder="Email" required>
+        <input type="text" id="facultyMobile" placeholder="Mobile" required>
+        <input type="text" id="facultyPhoto" placeholder="Profile Photo URL">
+        <select id="facultyDept" required></select>
+        <button type="submit">Add</button>
+      </form>
+
+      <h2>Faculty List</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Profile</th>
+            <th>User ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Mobile</th>
+            <th>Department</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="facultyTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Edit Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h3>Edit Faculty</h3>
+      <form id="editForm">
+        <input type="hidden" id="editId">
+        <input type="text" id="editUserId" required>
+        <input type="text" id="editName" required>
+        <input type="email" id="editEmail" required>
+        <input type="text" id="editMobile" required>
+        <input type="text" id="editPhoto" placeholder="Profile Photo URL">
+        <select id="editDept" required></select>
+        <button type="submit">Update</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const toastContainer = document.getElementById("toastContainer");
+    function showToast(message, type="success") {
+      const toast = document.createElement("div");
+      toast.className = "toast " + type;
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    async function loadDepartments() {
+      const res = await fetch("http://localhost:3000/api/dean/departments");
+      const depts = await res.json();
+      const deptSelect = document.getElementById("facultyDept");
+      const editDeptSelect = document.getElementById("editDept");
+      deptSelect.innerHTML = `<option value="">Select Department</option>`;
+      editDeptSelect.innerHTML = `<option value="">Select Department</option>`;
+      depts.forEach(d => {
+        deptSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+        editDeptSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+      });
+    }
+
+    async function loadFaculty() {
+      const res = await fetch("http://localhost:3000/api/dean/faculty");
+      const data = await res.json();
+      const tbody = document.getElementById("facultyTable");
+      tbody.innerHTML = "";
+      data.forEach((f, index) => {
+        const row = `
+          <tr>
+            <td>${index + 1}</td>
+            <td><img src="${f.photo || 'https://i.postimg.cc/fbVwm1L2/Bon.jpg'}"></td>
+            <td>${f.user_id}</td>
+            <td>${f.name}</td>
+            <td>${f.email}</td>
+            <td>${f.mobile}</td>
+            <td>${f.department_name}</td>
+            <td>
+              <button class="action-btn edit-btn" onclick="openEdit(${f.id}, '${f.user_id}', '${f.name}', '${f.email}', '${f.mobile}', '${f.photo || ''}', ${f.department_id})"><i class="fas fa-edit"></i></button>
+              <button class="action-btn delete-btn" onclick="deleteFaculty(${f.id})"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    document.getElementById("facultyForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const payload = {
+        user_id: document.getElementById("facultyUserId").value.trim(),
+        name: document.getElementById("facultyName").value.trim(),
+        email: document.getElementById("facultyEmail").value.trim(),
+        mobile: document.getElementById("facultyMobile").value.trim(),
+        photo: document.getElementById("facultyPhoto").value.trim(),
+        department_id: document.getElementById("facultyDept").value
+      };
+      const res = await fetch("http://localhost:3000/api/dean/faculty", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast("✅ Faculty added");
+        document.getElementById("facultyForm").reset();
+        loadFaculty();
+      } else showToast("❌ Failed to add faculty", "error");
+    });
+
+    function openEdit(id, userId, name, email, mobile, photo, deptId) {
+      document.getElementById("editId").value = id;
+      document.getElementById("editUserId").value = userId;
+      document.getElementById("editName").value = name;
+      document.getElementById("editEmail").value = email;
+      document.getElementById("editMobile").value = mobile;
+      document.getElementById("editPhoto").value = photo;
+      document.getElementById("editDept").value = deptId;
+      document.getElementById("editModal").style.display = "flex";
+    }
+
+    document.getElementById("editForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const id = document.getElementById("editId").value;
+      const payload = {
+        user_id: document.getElementById("editUserId").value.trim(),
+        name: document.getElementById("editName").value.trim(),
+        email: document.getElementById("editEmail").value.trim(),
+        mobile: document.getElementById("editMobile").value.trim(),
+        photo: document.getElementById("editPhoto").value.trim(),
+        department_id: document.getElementById("editDept").value
+      };
+      const res = await fetch(`http://localhost:3000/api/dean/faculty/${id}`, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast("✅ Faculty updated");
+        document.getElementById("editModal").style.display = "none";
+        loadFaculty();
+      } else showToast("❌ Failed to update faculty", "error");
+    });
+
+    async function deleteFaculty(id) {
+      if (!confirm("Delete this faculty?")) return;
+      const res = await fetch(`http://localhost:3000/api/dean/faculty/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        showToast("✅ Faculty deleted");
+        loadFaculty();
+      } else showToast("❌ Failed to delete faculty", "error");
+    }
+
+    window.onclick = e => {
+      const modal = document.getElementById("editModal");
+      if (e.target == modal) modal.style.display = "none";
+    };
+
+    function logout() {
+      localStorage.removeItem("deanId");
+      window.location.href = "login.html";
+    }
+
+    loadDepartments();
+    loadFaculty();
+  </script>
+</body>
+</html>

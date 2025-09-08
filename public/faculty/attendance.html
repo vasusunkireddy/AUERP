@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Faculty Attendance — AU ERP</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <style>
+    :root{--accent:#2563eb;--bg:#f9fafb;--muted:#6b7280;--danger:#dc2626;--success:#16a34a;--border:#e5e7eb}
+    *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{margin:0;background:var(--bg);color:#111;display:flex;min-height:100vh}
+    .sidebar{width:250px;background:linear-gradient(180deg,#0f1724,#0b1220);color:#fff;padding-top:12px;position:fixed;height:100vh}
+    .sidebar .brand{background:var(--accent);padding:16px;text-align:center;font-weight:700}
+    .sidebar nav{padding:10px}
+    .sidebar nav a{display:block;color:#d1d5db;text-decoration:none;padding:10px;border-radius:8px;margin:6px 0}
+    .sidebar nav a:hover{background:rgba(255,255,255,.04);color:#fff}
+    .main{margin-left:250px;flex:1;padding:22px}
+    .top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 6px 16px rgba(2,6,23,0.06)}
+    input[type="date"],select{padding:10px;border:1px solid var(--border);border-radius:8px}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{border:1px solid var(--border);padding:10px;text-align:center;vertical-align:middle}
+    th{background:#f3f4f6}
+    .student-photo,.scanned-photo{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--border);background:#f3f4f6}
+    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+    button{padding:9px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer}
+    .btn-muted{background:#6b7280}
+    .btn-outline{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+    .empty{padding:18px;color:var(--muted);text-align:center}
+    .banner{display:none;padding:10px;border-radius:8px;margin-bottom:12px}
+    .banner.success{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+    .banner.final{background:#fff7ed;color:#92400e;border:1px solid #fde68a}
+    .banner.info{background:#eef2ff;color:#1e3a8a;border:1px solid #c7d2fe}
+    .paused{display:none;padding:8px;border-radius:8px;background:#fff7ed;color:#b45309;margin-bottom:10px}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center}
+    .modal-card{background:#fff;border-radius:10px;width:640px;max-width:95%}
+    .modal-head{padding:14px;border-bottom:1px solid var(--border);font-weight:600}
+    .modal-body{padding:12px;max-height:60vh;overflow:auto}
+    .modal-foot{padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+    .disabled{pointer-events:none;opacity:.55}
+    #qrImage{max-width:260px;display:none;margin-top:8px}
+    #qrNote{display:none;color:var(--muted);font-size:13px}
+    #toast{position:fixed;top:18px;right:18px;padding:12px;border-radius:8px;color:#fff;display:none;z-index:9999}
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">AU ERP</div>
+    <nav>
+      <a href="dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a>
+      <a href="timetable.html"><i class="fa-solid fa-calendar-days"></i> Timetable</a>
+      <a style="background:rgba(255,255,255,.04);color:#fff" href="attendance.html"><i class="fa-solid fa-check-circle"></i> Attendance</a>
+      <a href="modifyattendance.html"><i class="fa-solid fa-pen-to-square"></i> Modify Attendance</a>
+      <a href="login.html" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="top">
+      <img src="https://i.postimg.cc/cHN88t2D/AU.png" alt="AU" style="height:44px">
+      <div>
+        <h2 style="margin:0">Faculty Attendance</h2>
+        <div style="color:var(--muted);font-size:13px">Live scans update here. Nothing is final until you click <b>Submit → Confirm</b>.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <!-- SUCCESS shown immediately after faculty submits -->
+      <div id="successBanner" class="banner success">✅ Attendance saved successfully.</div>
+
+      <!-- FINAL is shown when editing is locked because backend flagged final OR when reopening a session that already has attendance saved -->
+      <div id="finalBanner" class="banner final"></div>
+
+      <!-- INFO shown while session is open and scans may be coming in -->
+      <div id="infoBanner" class="banner info">Live scans are visible here. Faculty must click Submit to persist final attendance.</div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="attendanceDate" type="date" />
+          <select id="sessionSelect"><option value="">Select Session</option></select>
+        </div>
+        <div style="text-align:right;color:var(--muted);font-size:13px" id="sessionInfo"></div>
+      </div>
+
+      <div id="pausedMsg" class="paused"><i class="fa-solid fa-circle-pause"></i> Live updates paused while editing.</div>
+
+      <div style="text-align:center;margin-bottom:10px">
+        <button id="generateQrBtn" type="button">Generate QR</button>
+        <div><img id="qrImage" src="" alt="QR"></div>
+        <div id="qrNote">QR refreshes every 8s — students scan using the mobile app.</div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px">
+        <button id="markAllPresentBtn" type="button">Mark All Present</button>
+        <button id="markAllAbsentBtn" class="btn-muted" type="button">Mark All Absent</button>
+      </div>
+
+      <table>
+        <thead><tr><th>Profile</th><th>Scanned</th><th>Roll No</th><th>Name</th><th>Present</th></tr></thead>
+        <tbody id="studentTable"><tr><td colspan="5" class="empty">Pick a session to load students.</td></tr></tbody>
+      </table>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+        <button id="clearBtn" class="btn-muted" type="button">Clear</button>
+        <button id="submitBtn" type="button" disabled>Submit Attendance</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Confirm Modal -->
+  <div id="confirmModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">Review Absentees</div>
+      <div class="modal-body">
+        <div id="confirmText" style="margin-bottom:8px">You are about to submit attendance. The following students are marked <b>Absent</b>:</div>
+        <ol id="absentList" style="padding-left:18px;margin:0"></ol>
+      </div>
+      <div class="modal-foot">
+        <button id="cancelSubmit" class="btn-muted" type="button">Cancel</button>
+        <button id="confirmSubmit" class="btn-danger" type="button">Yes, Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+<script>
+/* ====== Config ====== */
+const BASE_URL = "http://localhost:3000";
+const facultyId = localStorage.getItem("facultyId");
+const facultyName = localStorage.getItem("facultyName") || "Faculty";
+if (!facultyId) { alert("Not logged in"); window.location.href = "login.html"; }
+
+const $ = id => document.getElementById(id);
+const localISODate = d => {
+  d = d || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+};
+const toast = (msg, ok=true) => {
+  const t = $("toast");
+  t.style.background = ok ? "var(--success)" : "var(--danger)";
+  t.style.display = "block";
+  t.textContent = msg;
+  setTimeout(()=> t.style.display = "none", 2200);
+};
+const enableSubmit = v => $("submitBtn").disabled = !v;
+
+let pollInterval = null, qrInterval = null, editing = false, locked = false;
+let allowSubmit = false; // only flipped true at confirm click
+let justSubmitted = false; // local flag to show success immediately after submit
+
+/* ====== Final-check helper ======
+   Only consider attendance FINAL if backend explicitly marks it final.
+   This prevents single-scan QR entries from auto-locking the UI.
+*/
+function isFinalAttendanceStatus(status) {
+  if (!status) return false;
+  if (status.finalized === true || status.is_final === true || status.force_final === true) return true;
+  if (status.last_mode && typeof status.last_mode === 'string' && status.last_mode.toLowerCase() === 'final') return true;
+  return false;
+}
+
+/* ====== UI helpers ====== */
+function setLockedUI(on, statusObj, showFinalBannerNow=true) {
+  locked = !!on;
+  const toggles = document.querySelectorAll("#studentTable input, button");
+  toggles.forEach(el => {
+    if (el.id === "clearBtn") { el.disabled = false; el.classList.remove("disabled"); return; }
+    if (on) el.classList.add("disabled"); else el.classList.remove("disabled");
+    el.disabled = on || (el.id === "submitBtn" && $("sessionSelect").value === "");
+  });
+  $("generateQrBtn").disabled = on;
+  $("qrImage").style.display = on ? "none" : $("qrImage").style.display;
+  $("qrNote").style.display = on ? "none" : $("qrNote").style.display;
+
+  // If showFinalBannerNow is true and we have a statusObj, show final banner.
+  // After a local submit (justSubmitted = true), we prefer showing successBanner instead,
+  // and show final banner only on future opens.
+  if (on && statusObj && showFinalBannerNow) {
+    showFinalBanner(statusObj);
+  } else if (on && justSubmitted) {
+    // show success instead of final banner immediately after submit
+    $("finalBanner").style.display = "none";
+    $("infoBanner").style.display = "none";
+  } else {
+    $("finalBanner").style.display = "none";
+  }
+}
+
+function showFinalBanner({ last_time, last_mode }) {
+  const when = last_time ? ` at ${last_time}` : "";
+  const mode = last_mode ? ` (mode: ${last_mode})` : "";
+  $("finalBanner").innerHTML = `<i class="fa-solid fa-circle-info"></i> Attendance already recorded${when}${mode}. Use <b>Modify Attendance</b> to edit.`;
+  $("finalBanner").style.display = "block";
+  $("infoBanner").style.display = "none";
+}
+
+/* ====== API helpers ====== */
+async function apiGET(path) {
+  const res = await fetch(path);
+  return await res.json();
+}
+
+/* ====== Sessions + Students ====== */
+async function loadSessions() {
+  const dateEl = $("attendanceDate");
+  if (!dateEl.value) dateEl.value = localISODate();
+  const date = dateEl.value;
+  try {
+    const sessions = await apiGET(`${BASE_URL}/api/faculty/${facultyId}/sessions?date=${date}`);
+    const sel = $("sessionSelect");
+    sel.innerHTML = "<option value=''>Select Session</option>";
+    if (!Array.isArray(sessions) || sessions.length === 0) {
+      $("sessionInfo").textContent = "No sessions scheduled for this date.";
+      $("studentTable").innerHTML = `<tr><td colspan="5" class="empty">No students to display.</td></tr>`;
+      enableSubmit(false); setLockedUI(false); $("infoBanner").style.display = "none"; $("finalBanner").style.display = "none"; return;
+    }
+    sessions.forEach(s => {
+      const o = document.createElement("option");
+      o.value = s.session_id;
+      o.textContent = `Session ${s.session} (${s.start_time} - ${s.end_time}) — ${s.course_code} • ${s.section_name}`;
+      o.dataset.courseId = s.course_id;
+      o.dataset.courseName = s.course_name;
+      o.dataset.startTime = s.start_time;
+      o.dataset.endTime = s.end_time;
+      o.dataset.sessionNumber = s.session;
+      sel.appendChild(o);
+    });
+    $("sessionInfo").textContent = "";
+    enableSubmit(false); setLockedUI(false); $("infoBanner").style.display = "block"; $("finalBanner").style.display = "none";
+  } catch (e) {
+    console.error("loadSessions", e);
+    toast("Failed to load sessions", false);
+  }
+}
+
+function dedupe(rows) {
+  const map = new Map();
+  (rows || []).forEach(r => { if (!map.has(r.id)) map.set(r.id, r); });
+  return Array.from(map.values());
+}
+
+async function attendanceStatus({ faculty_id, session_id, course_id, date }) {
+  try {
+    return await apiGET(`${BASE_URL}/api/faculty/${faculty_id}/attendance-status?sessionId=${session_id}&courseId=${course_id}&date=${date}`);
+  } catch (e) {
+    console.error("attendanceStatus", e);
+    return null;
+  }
+}
+
+async function loadStudents(first=true) {
+  if (locked) return;
+  const sel = $("sessionSelect");
+  const sessionId = sel.value;
+  const courseId = sel.selectedOptions[0]?.dataset.courseId;
+  const date = $("attendanceDate").value;
+  if (!sessionId || !courseId || !date) return;
+
+  // Check status — but only lock if server says FINAL.
+  try {
+    const status = await attendanceStatus({ faculty_id: facultyId, session_id: sessionId, course_id: courseId, date });
+    if (status && isFinalAttendanceStatus(status)) {
+      // Backend says final; lock and show final banner
+      justSubmitted = false; // clear any local submit flag when reopening
+      setLockedUI(true, status, true);
+      $("sessionInfo").innerHTML = `<strong>Faculty:</strong> ${facultyName} | <strong>Course:</strong> ${sel.selectedOptions[0].dataset.courseName} | <strong>Timing:</strong> ${sel.selectedOptions[0].dataset.startTime} - ${sel.selectedOptions[0].dataset.endTime} (S${sel.selectedOptions[0].dataset.sessionNumber})`;
+      $("studentTable").innerHTML = `<tr><td colspan="5" class="empty">Attendance already recorded at <b>${status.last_time || '-'}</b>. Use Modify Attendance to change.</td></tr>`;
+      enableSubmit(false);
+      return;
+    } else {
+      // Not final (even if some scan rows exist), do NOT lock — scans remain provisional.
+      $("infoBanner").style.display = "block";
+      $("finalBanner").style.display = "none";
+    }
+  } catch (err) {
+    console.error("status check", err);
+  }
+
+  $("sessionInfo").innerHTML = `<strong>Faculty:</strong> ${facultyName} | <strong>Course:</strong> ${sel.selectedOptions[0].dataset.courseName} | <strong>Timing:</strong> ${sel.selectedOptions[0].dataset.startTime} - ${sel.selectedOptions[0].dataset.endTime} (S${sel.selectedOptions[0].dataset.sessionNumber})`;
+
+  try {
+    const rows = await apiGET(`${BASE_URL}/api/faculty/${facultyId}/students?sessionId=${sessionId}&courseId=${courseId}&date=${date}`);
+    const students = dedupe(rows);
+    const tbody = $("studentTable");
+    if (!students.length) { tbody.innerHTML = `<tr><td colspan="5" class="empty">No students found for this session.</td></tr>`; enableSubmit(false); return; }
+
+    if (first) {
+      tbody.innerHTML = "";
+      students.forEach(s => {
+        const photo = s.photo || "https://i.postimg.cc/fbVwm1L2/Bon.jpg";
+        const scanned = s.scanned_photo || "https://i.postimg.cc/fbVwm1L2/Bon.jpg";
+        const checked = s.status === "Present" ? "checked" : "";
+        tbody.insertAdjacentHTML("beforeend", `
+          <tr id="student-${s.id}">
+            <td><img src="${photo}" class="student-photo" alt="profile"></td>
+            <td><img src="${scanned}" class="scanned-photo" id="scanned-${s.id}" alt="scanned"></td>
+            <td>${s.registration_no || "-"}</td>
+            <td>${s.name || "-"}</td>
+            <td><input type="checkbox" data-id="${s.id}" ${checked}></td>
+          </tr>
+        `);
+      });
+
+      // editing pauses polling — no POSTS here
+      tbody.addEventListener("change", (e) => {
+        if (e.target?.type === "checkbox") {
+          editing = true;
+          allowSubmit = false;
+          if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+          $("pausedMsg").style.display = "block";
+        }
+      });
+    } else {
+      // polling update only — do not overwrite faculty focus
+      students.forEach(s => {
+        const row = document.getElementById(`student-${s.id}`);
+        if (!row) return;
+        const cb = row.querySelector("input[type=checkbox]");
+        if (cb && !cb.matches(":focus")) cb.checked = (s.status === "Present");
+        const img = $(`scanned-${s.id}`);
+        if (img) img.src = s.scanned_photo ? `${s.scanned_photo}?t=${Date.now()}` : "https://i.postimg.cc/fbVwm1L2/Bon.jpg";
+      });
+    }
+    enableSubmit(true);
+  } catch (e) {
+    console.error("loadStudents", e);
+    toast("Failed to load students", false);
+    enableSubmit(false);
+  }
+}
+
+function startPolling() {
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(() => { if (!editing && !locked) loadStudents(false); }, 1200);
+}
+
+/* ====== QR (GET only) ====== */
+$("generateQrBtn").addEventListener("click", async () => {
+  if (locked) return;
+  const sel = $("sessionSelect"); const sessionId = sel.value; const courseId = sel.selectedOptions[0]?.dataset.courseId; const date = $("attendanceDate").value;
+  if (!sessionId || !courseId || !date) { toast("Select session & date", false); return; }
+  $("qrImage").style.display = "block"; $("qrNote").style.display = "block";
+  const img = $("qrImage");
+  async function fetchQr() {
+    try {
+      const res = await apiGET(`${BASE_URL}/api/faculty/${facultyId}/generate-qr?sessionId=${sessionId}&courseId=${courseId}&date=${date}`);
+      if (res && res.qrCode) {
+        img.src = res.qrCode;
+        img.dataset.qrTs = (res.payload && res.payload.ts) ? res.payload.ts : Date.now();
+      }
+    } catch (e) { console.error("fetchQr", e); toast("QR error", false); }
+  }
+  if (qrInterval) clearInterval(qrInterval);
+  await fetchQr();
+  qrInterval = setInterval(fetchQr, 8000);
+});
+
+/* ====== Bulk & Clear ====== */
+$("markAllPresentBtn").addEventListener("click", () => {
+  if (locked) return;
+  document.querySelectorAll("#studentTable input[type=checkbox]").forEach(cb => cb.checked = true);
+  editing = true; allowSubmit = false;
+  if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+  $("pausedMsg").style.display = "block";
+});
+$("markAllAbsentBtn").addEventListener("click", () => {
+  if (locked) return;
+  document.querySelectorAll("#studentTable input[type=checkbox]").forEach(cb => cb.checked = false);
+  editing = true; allowSubmit = false;
+  if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+  $("pausedMsg").style.display = "block";
+});
+$("clearBtn").addEventListener("click", () => {
+  $("sessionSelect").value = ""; $("studentTable").innerHTML = `<tr><td colspan="5" class="empty">Pick a session to load students.</td></tr>`;
+  $("sessionInfo").textContent = ""; if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+  if (qrInterval) { clearInterval(qrInterval); qrInterval = null; }
+  $("qrImage").style.display = "none"; $("qrNote").style.display = "none"; $("pausedMsg").style.display = "none";
+  editing = false; allowSubmit = false; justSubmitted = false; setLockedUI(false); $("infoBanner").style.display = "block"; $("finalBanner").style.display = "none";
+  enableSubmit(false);
+});
+$("sessionSelect").addEventListener("change", async () => {
+  $("qrImage").style.display = "none"; $("qrNote").style.display = "none";
+  $("pausedMsg").style.display = "none"; editing = false; allowSubmit = false; setLockedUI(false);
+  // clear local justSubmitted because we opened a fresh session
+  justSubmitted = false;
+  await loadStudents(true);
+  startPolling();
+});
+
+/* ====== Build records ====== */
+function buildRecords() {
+  const rows = Array.from(document.querySelectorAll("#studentTable tr"));
+  const seen = new Set(); const records = [];
+  rows.forEach(r => {
+    const cb = r.querySelector("input[type=checkbox]");
+    if (!cb) return;
+    const id = cb.dataset.id; if (!id || seen.has(id)) return; seen.add(id);
+    const name = r.children[3]?.textContent?.trim() || "";
+    const roll = r.children[2]?.textContent?.trim() || "";
+    const scanned = r.querySelector(".scanned-photo")?.src || "";
+    records.push({
+      student_id: id,
+      name,
+      roll,
+      status: cb.checked ? "Present" : "Absent",
+      scanned_photo: (cb.checked && scanned && !scanned.includes("Bon.jpg")) ? scanned.split("?")[0] : null
+    });
+  });
+  return records;
+}
+
+/* ====== Confirm & Submit ====== */
+function openConfirm(absentees) {
+  const list = $("absentList"); list.innerHTML = "";
+  if (!absentees.length) {
+    $("confirmText").textContent = "All students marked Present. Submit?";
+  } else {
+    $("confirmText").textContent = "You're about to submit. The following students are Absent:";
+    absentees.forEach(a => {
+      const li = document.createElement("li");
+      li.textContent = `${a.name || "-"} (${a.roll || "-"})`;
+      list.appendChild(li);
+    });
+  }
+  $("confirmModal").style.display = "flex";
+  allowSubmit = false;
+}
+function closeConfirm() { $("confirmModal").style.display = "none"; allowSubmit = false; }
+
+$("submitBtn").addEventListener("click", async (e) => {
+  e.preventDefault();
+  if (locked) return;
+  const sel = $("sessionSelect"); const sessionId = sel.value; const courseId = sel.selectedOptions[0]?.dataset.courseId; const date = $("attendanceDate").value;
+  if (!sessionId || !courseId || !date) { toast("Select session & date", false); return; }
+
+  // Defensive last-second check: if server says FINAL, block submit
+  try {
+    const st = await attendanceStatus({ faculty_id: facultyId, session_id: sessionId, course_id: courseId, date });
+    if (st && isFinalAttendanceStatus(st)) {
+      setLockedUI(true, st, true);
+      toast("Attendance is already finalized for this session. Use Modify Attendance to edit.", false);
+      return;
+    }
+  } catch (_) { /* ignore transient error */ }
+
+  const records = buildRecords();
+  if (!records.length) { toast("No students to submit", false); return; }
+  const absentees = records.filter(r => r.status === "Absent");
+  openConfirm(absentees);
+});
+
+$("cancelSubmit").addEventListener("click", closeConfirm);
+
+/* Confirm -> actual POST */
+$("confirmSubmit").addEventListener("click", async () => {
+  // allow the explicit confirmed POST
+  allowSubmit = true;
+  if (!allowSubmit) return;
+  closeConfirm();
+
+  const sel = $("sessionSelect"); const sessionId = sel.value; const courseId = sel.selectedOptions[0]?.dataset.courseId; const date = $("attendanceDate").value;
+  if (!sessionId || !courseId || !date) { toast("Pick session & date", false); return; }
+
+  const records = buildRecords().map(({name, roll, ...r}) => r);
+  if (!records.length) { toast("No students to submit", false); return; }
+
+  const payload = { faculty_id: facultyId, session_id: sessionId, course_id: courseId, date, mode: "manual", records, qr_ts: Date.now() };
+
+  try {
+    const resp = await fetch(`${BASE_URL}/api/faculty/attendance`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    });
+    const out = await resp.json();
+
+    if (!resp.ok || !out.success) {
+      toast(out.message || "Failed to save attendance", false);
+      if (resp.status === 409) {
+        // show clear conflict message
+        const st = await attendanceStatus({ faculty_id: facultyId, session_id: sessionId, course_id: courseId, date });
+        if (st && isFinalAttendanceStatus(st)) setLockedUI(true, st, true);
+        else toast("Attendance exists (conflict). Use Modify Attendance to change.", false);
+      }
+      allowSubmit = false;
+      return;
+    }
+
+    // Success: show success banner, lock locally, but show success instead of final banner immediately.
+    if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+    if (qrInterval) { clearInterval(qrInterval); qrInterval = null; }
+    $("qrImage").style.display = "none"; $("qrNote").style.display = "none";
+    $("pausedMsg").style.display = "none";
+    editing = false; allowSubmit = false;
+
+    // show success banner
+    $("successBanner").style.display = "block";
+    setTimeout(()=> $("successBanner").style.display = "none", 2500);
+    toast("Attendance saved");
+
+    // local flag so we show success now; next open will read from server and show finalBanner if backend saved rows
+    justSubmitted = true;
+
+    // Lock editing immediately to avoid re-submits — but show success, not final banner now
+    setLockedUI(true, { last_time: out.saved_at || null, last_mode: payload.mode }, false);
+    // show an explanatory info line so user knows it was saved and session locked
+    $("studentTable").innerHTML = `<tr><td colspan="5" class="empty">Attendance submitted for ${date}. This session is now locked. Use Modify Attendance to change it.</td></tr>`;
+    enableSubmit(false);
+  } catch (err) {
+    console.error("submit error", err);
+    toast("Network error", false);
+    allowSubmit = false;
+  }
+});
+
+/* ====== Init ====== */
+document.addEventListener("DOMContentLoaded", async () => {
+  $("attendanceDate").value = localISODate(new Date());
+  await loadSessions();
+  // start polling only after session is chosen
+});
+window.addEventListener("beforeunload", () => {
+  if (pollInterval) clearInterval(pollInterval);
+  if (qrInterval) clearInterval(qrInterval);
+});
+function logout() { localStorage.clear(); window.location.href = "login.html"; }
+</script>
+</body>
+</html>
